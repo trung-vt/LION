@@ -1,0 +1,30 @@
+name: lion_proposed_no_pytorch_channel
+channels:
+  - conda-forge
+dependencies:
+  - astra-toolbox  # for tomosipo
+  - imageio=2.37.0  # walnuts.py, pre_process_2detecCT.py
+  - kornia  # GaussianDenoiserSolver.py
+  - matplotlib
+  - pandas  # deteCT.py, pre_process_lidc_idri.py
+  - numpy<2.0  # a few packages still lack support for numpy 2.x
+  # - numpy
+  # - wandb>=0.17.2  # earlier versions don't support numpy 2.x (deepinv needs wandb)
+  - pydicom  # data_primitives.py
+  - python=3.12
+  - pytorch
+  - scikit-image
+  - scipy  # pre_process_2deteCT.py, data_loader.py, data_primitives.py, pre_processing.py
+  # - tomosipo=0.6.0  # NOTE: tomosipo 0.6.0 does not support numpy 2.x
+  # # (support added in 0.7.0 but must be installed via pip with the github repo
+  # # since conda version is still 0.6.0)
+  - simpleitk  # data_primitives.py
+  - torchdiffeq  # cLPD.py, cFBPConvNet.py
+  - torchvision  # ct_transforms.py, EquivariantSolver.py
+  - tqdm
+  - deepinv  # for pretrained DRUNet for PnP demo
+  - pip:
+      - spyrit  # Single-pixel imaging reconstruction toolbox. Cannot be installed via conda.
+      - pylidc  # pre_process_lidc_idri.py (cannot be installed via conda)
+      - git+https://github.com/ahendriksen/ts_algorithms.git
+      - git+https://github.com/ahendriksen/tomosipo.git@v0.7.0  # for tomosipo with numpy 2.x support

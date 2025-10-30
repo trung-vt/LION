@@ -21,6 +21,11 @@
 #
 
 # %%
+import torch
+
+device = "cuda:0"
+torch.set_default_device(device)
+
 import deepinv
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,24 +33,37 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from spyrit.core.torch import fwht_2d
 import torch
+from tqdm import tqdm
 
 # Lion imports
 from LION.reconstructors.PnPReconstructor import PnPReconstructor
 from LION.operators.PhotocurrentMapOp import PhotocurrentMapOp, Subsampler
 
+from plot_helper import PlotHelper
+
 
 def run_demo(
-    dataset: torch.utils.data.Dataset,
+    plot_helper: PlotHelper,
+    # dataset: torch.utils.data.Dataset,
+    im_tensor: torch.Tensor,  # (1,1,H,W)
+    J: int,
+    data_minmax: tuple[float, float] = (0.0, 1.0),  # for normalization in denoiser
     subtract_from_J: int = 1,
     delta_divided_by: int = 4,
+    pnp_iterations: int = 10,
+    cg_iterations: int = 10,
+    cg_tol: float = 1e-7,
+    # sigma: float = 25 / 255,
+    sigma: float = 50 / 255,
+    im_name: str = '',
 ):
     device = torch.get_default_device()
     # %%
-    J = 9  # 512x512 images
+    # J = 9  # 512x512 images
     N = 1 << J
 
-    sino, target = dataset[0]
-    im_tensor = target.unsqueeze(0)  # (1,1,H,W)
+    # sino, target = dataset[0]
+    # im_tensor = target.unsqueeze(0)  # (1,1,H,W)
 
     coarseJ = J - subtract_from_J
     delta = 1.0 / delta_divided_by
@@ -60,7 +78,7 @@ def run_demo(
 
     # %%
 
-    print(f"Running fast WHT")
+    # print(f"Running fast WHT")
     measurement_2d = fwht_2d(im_tensor, order=False)
     log_measurement_2d = torch.log1p(torch.abs(measurement_2d))
 
@@ -126,31 +144,38 @@ def run_demo(
 
     # plt.show()
 
-    # %%
+    # %% TV-minimization baseline (optional)
 
-    # Test
+
+
+
+    # %% Plug-and-Play
+
+    #
     denoiser = deepinv.models.DRUNet(pretrained="download", device=device)
-    sigma = 25 / 255  # noise level for denoiser
+    # sigma = 25 / 255  # noise level for denoiser
+
+    min_data_val, max_data_val = data_minmax
+    data_range = max_data_val - min_data_val
 
     def denoiser_fn_admm(x: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
             x = x.repeat(1, 3, 1, 1)  # grayscale 2D to 4-channel batch
+            x = (x - min_data_val) / data_range  # normalize to [0,1]
             denoised = denoiser(x, sigma=sigma)
             denoised = torch.mean(denoised, dim=1).squeeze(
                 0
             )  # average the channels to get grayscale
+            denoised = denoised * data_range + min_data_val  # rescale to original range
         return denoised
 
-    cg_max_iter = 100
-    cg_tol = 1e-7
-
-    print(f"Running PnP-ADMM reconstruction...")
+    # print(f"Running PnP-ADMM reconstruction...")
     pnp = PnPReconstructor(physics=op, denoiser=denoiser_fn_admm, algorithm="ADMM")
     pnp_admm_result = pnp.admm_algorithm(
         measurement=y_subsampled_tensor,
         eta=1e-4,
-        max_iter=10,
-        cg_max_iter=cg_max_iter,
+        iterator=tqdm(range(pnp_iterations), desc="PnP-ADMM iterations"),
+        cg_iterator=tqdm(range(cg_iterations), desc="CG iterations", leave=False),
         cg_tol=cg_tol,
     )
     # plt.imshow(pnp_admm_result_np.clip(0, 1), cmap="gray")
@@ -217,8 +242,6 @@ def run_demo(
     im_reconstructed_np = im_reconstructed_tensor.squeeze().cpu().numpy()
     pnp_admm_result_np = pnp_admm_result.squeeze().cpu().numpy()
 
-    data_range = im_np.max() - im_np.min()
-
     psnr_zf = psnr(im_np, im_reconstructed_np, data_range=data_range)
     psnr_pnp = psnr(im_np, pnp_admm_result_np, data_range=data_range)
 
@@ -226,23 +249,28 @@ def run_demo(
     ssim_pnp = ssim(im_np, pnp_admm_result_np, data_range=data_range)
 
     # %%
-    n_subplots = 4
-    plt.figure(figsize=(n_subplots * 4, 4))
+    # n_subplots = 4
+    n_subplots = 3
+    # plt.figure(figsize=(n_subplots * 4, 4))
+    fig, axes = plt.subplots(1, n_subplots, figsize=(n_subplots * 4, 4))
 
-    plt.subplot(1, n_subplots, 1)
-    plt.imshow(im_np, cmap="gray")
+    # plt.subplot(1, n_subplots, 1)
+    # plt.imshow(im_np, cmap=cmap)
+    plot_helper.add_zoom_inset(ax=axes[0], img=im_np)
     plt.title("Original Image")
     plt.axis("off")
 
-    plt.subplot(1, n_subplots, 2)
-    plt.imshow(im_reconstructed_np, cmap="gray")
+    # plt.subplot(1, n_subplots, 2)
+    # plt.imshow(im_reconstructed_np, cmap=cmap)
+    plot_helper.add_zoom_inset(ax=axes[1], img=im_reconstructed_np)
     plt.title(
         f"Zero-filled Reconstruction\nPSNR: {psnr_zf:.2f} dB, SSIM: {ssim_zf:.4f}"
     )
     plt.axis("off")
 
-    plt.subplot(1, n_subplots, 3)
-    plt.imshow(pnp_admm_result_np, cmap="gray")
+    # plt.subplot(1, n_subplots, 3)
+    # plt.imshow(pnp_admm_result_np, cmap=cmap)
+    plot_helper.add_zoom_inset(ax=axes[2], img=pnp_admm_result_np)
     plt.title(f"PnP-ADMM Reconstruction\nPSNR: {psnr_pnp:.2f} dB, SSIM: {ssim_pnp:.4f}")
     plt.axis("off")
 
@@ -254,9 +282,44 @@ def run_demo(
         fontsize=16,
     )
 
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(
         f"pcm_recons_{sampling_rate_percent}_percent_sampling_{in_order_measurements_percent}_percent_in_order_measurements.png",
         dpi=150,
-    )
+    );
     # plt.show()
+
+
+
+
+
+
+
+
+
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=600)
+    plot_helper.add_zoom_inset(ax=ax, img=im_np)
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(
+        f"{im_name}_pcm_original.png",
+        dpi=600,
+    );
+
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=600)
+    plot_helper.add_zoom_inset(ax=ax, img=im_reconstructed_np)
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(
+        f"{im_name}_pcm_zerofilled_{sampling_rate_percent}_percent_sampling_{in_order_measurements_percent}_percent_in_order_measurements psnr{psnr_zf:.2f} ssim{ssim_zf:.4f}.png",
+        dpi=600,
+    );
+
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=600)
+    plot_helper.add_zoom_inset(ax=ax, img=pnp_admm_result_np)
+    plt.tight_layout()
+    plt.axis("off")
+    plt.savefig(
+        f"{im_name}_pcm_pnpadmm_{sampling_rate_percent}_percent_sampling_{in_order_measurements_percent}_percent_in_order_measurements psnr{psnr_pnp:.2f} ssim{ssim_pnp:.4f}.png",
+        dpi=600,
+    );

@@ -5,13 +5,15 @@
 
 University of Cambridge Computational Image Analysis (CIA) groups AI tools for tomographic reconstruction, LION (Learned Iterative Optimization Networks)
 
-The library is a place to gather and provide resources for Computed Tomography reconstruction using machine learning tools. It contains data dowloading and pre-processing, torch `DataSet` classes for the existing data, and `Experiments` class with implementation of default realistic experiments, several data-driven methods and models, and features to enhance reproduciblity. 
+The library is a place to gather and provide resources for Computed Tomography reconstruction using machine learning tools. It contains data dowloading and pre-processing, torch `DataSet` classes for the existing data, and `Experiments` class with implementation of default realistic experiments, several data-driven methods and models, and features to enhance reproduciblity.
 
 
-**WARNING** Building in progress. This is a tool in development in very early stages. 
-Many things are bound to fail and many more are bound to change. If you want to help with development, send an email to Ander Biguri and/or open and issue or a discussion. 
+**WARNING** Building in progress. This is a tool in development in very early stages.
+Many things are bound to fail and many more are bound to change. If you want to help with development, send an email to Ander Biguri and/or open and issue or a discussion.
 
-Install: 
+Install:
+
+You need to use a conda environemtn since this project requires the `astra-toolbox` backend version from `astra-toolbox` channel of anaconda (for the `to_autograd` in Tomosipo which requires `libcudart.so.12`).
 
 ```
 git clone https://github.com/CambridgeCIA/LION.git
@@ -27,7 +29,7 @@ pip install -e .
 ```
 to make the installation editable (i.e. changes you make to the source will be visible when you restart the REPL or start a new Python process).
 
-Optional, if you want pre-commits. 
+Optional, if you want pre-commits.
 Install pre commits for auto-formating your commits.
 Highly suggested if you want reproducibility, this will auto-save changes in your conda enviroments and will update your conda enviroment when pulling
 
@@ -39,11 +41,11 @@ pre-commit install --hook-type pre-commit --hook-type post-merge
 
 ## Datasets
 
-Currently there are several DataSets supported by LION. LION automatically knows where these are, but currently it only works for people working on the servers of CMS at University of Cambridge. To make it work in somewhere else, you just want to change LION/utils/paths.py line 7 `LION_DATA_PATH = pathlib.Path("/store/LION/datasets/")` to the actual location in your system. We are working on figuring out how to make LION flexible at install. 
+Currently there are several DataSets supported by LION. LION automatically knows where these are, but currently it only works for people working on the servers of CMS at University of Cambridge. To make it work in somewhere else, you just want to change LION/utils/paths.py line 7 `LION_DATA_PATH = pathlib.Path("/store/LION/datasets/")` to the actual location in your system. We are working on figuring out how to make LION flexible at install.
 
 NOTE: If you are part of CIA at DAMTP, you already have access to these datasets and you don't need to follow any instruction to dowload them.
 
-The supported Datasets are `2DeteCT`, `LIDC-IDRI`, 
+The supported Datasets are `2DeteCT`, `LIDC-IDRI`,
 
 [Read more about them here](LION/data_loaders/README.md)
 
@@ -54,9 +56,9 @@ LION supports all types of data-driven methods for CT reconstructions. They can,
 - Post-Processing methods: a "denoising" network. Takes a noisy recon and cleans it.
 - Iterative Unrolled methods: Uses the operator to imitate iterative recon algorithms, but has learned parts.
 - Learned regularizer: Explicitly learned regularization functions.
-- Plug-and-Play (PnP): Implicit learned regularization, a regularization optimization step is learned, rather than an explicit one. 
+- Plug-and-Play (PnP): Implicit learned regularization, a regularization optimization step is learned, rather than an explicit one.
 
-Folders for each of these exist in `LION/models`. An extra folder for standard `CNNs` is also available. 
+Folders for each of these exist in `LION/models`. An extra folder for standard `CNNs` is also available.
 
 [Read more about which models are available in each class here](LION/models/README.md)
 

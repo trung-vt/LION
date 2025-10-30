@@ -1,0 +1,7 @@
+name: lion_pip_mamba
+channels:
+  - astra-toolbox
+dependencies:
+  - astra-toolbox
+  - python=3.12
+  - tomosipo

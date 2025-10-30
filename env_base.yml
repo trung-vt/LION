@@ -1,4 +1,4 @@
-name: lion_base
+name: lion_dev_others
 channels:
   - astra-toolbox
 dependencies:

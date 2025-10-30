@@ -34,10 +34,21 @@ dependencies = [
     # The main dependency is tomosipo which in turns depends on astra-toolbox.
 
     # The followings are currently set to the latest versions (make sure they don't conflict with the above)
-    "deepinv>=0.3.5",  # pretrained DRUNet
-    "spyrit>=3.0",  # Fast Walsh-Hadamard Transform
-    "pandas>=2.3",
-    "scikit-image>=0.25"
+    "deepinv",  # for pretrained DRUNet for PnP demo
+    "imageio",  # walnuts.py, pre_process_2detecCT.py
+    "kornia",   # GaussianDenoiserSolver.py
+    "matplotlib",
+    "numpy",
+    "pandas",   # deteCT.py, pre_process_lidc_idri.py
+    "pydicom",  # data_primitives.py
+    "scikit-image",
+    "scipy",  # pre_process_2deteCT.py, data_loader.py, data_primitives.py, pre_processing.py
+    "simpleitk",  # data_primitives.py
+    "spyrit",  # Fast Walsh-Hadamard Transform
+    "torch",
+    "torchdiffeq",  # cLPD.py, cFBPConvNet.py
+    "torchvision",  # ct_transforms.py, EquivariantSolver.py
+    "tqdm"
 ]
 
 [project.optional-dependencies]
@@ -68,7 +79,12 @@ notebooks = [
     "matplotlib",
     "cmap",
 ]
+others = [
+    "zenodo-get",
+    "mrpro",
+]
 dev = ["LION[tests, docs]"]
+dev_others = ["LION[tests, docs, notebooks]"]
 
 # PyTest section
 [tool.pytest.ini_options]

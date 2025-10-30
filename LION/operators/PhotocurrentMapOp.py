@@ -69,7 +69,8 @@ class PhotocurrentMapOp(Operator):
 
     def forward(self, x: torch.Tensor, out: torch.Tensor = None) -> torch.Tensor:
         # Forward Hadamard
-        y_std = fwht(x.ravel(), order=False, dim=self.wht_dim)
+        # y_std = fwht(x.ravel(), order=False, dim=self.wht_dim)
+        y_std = fwht(x.ravel(), order=False, dim=self.wht_dim) / np.sqrt(self.num_pixels)
 
         # apply reordering
         y_reordered = y_std[self.normal_to_dyadic_perm]
@@ -83,6 +84,7 @@ class PhotocurrentMapOp(Operator):
         y_standard_full = torch.zeros(self.num_pixels, dtype=y.dtype)
         y_standard_full[self.normal_to_dyadic_perm] = y_reordered_full
 
-        im_rec_vec: torch.Tensor = ifwht(y_standard_full, order=False, dim=self.wht_dim)
+        # im_rec_vec: torch.Tensor = ifwht(y_standard_full, order=False, dim=self.wht_dim)
+        im_rec_vec: torch.Tensor = fwht(y_standard_full, order=False, dim=self.wht_dim) / np.sqrt(self.num_pixels)
         im_rec = im_rec_vec.reshape(self._image_shape)
         return im_rec

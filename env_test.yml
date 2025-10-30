@@ -1,0 +1,10 @@
+dependencies:
+  - python=3.12     # python 3.13 and above don't support numpy 1.x
+  - numpy<2         # deepinv doesn't work with numpy 2 yet
+  - protobuf<3.21   # deepinv needs protobuf package to 3.20.x or lower
+  - ipykernel
+  - matplotlib
+  - scikit-image
+  - pytorch
+  - pip:
+    - deepinv

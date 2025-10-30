@@ -1,6 +1,6 @@
 """Conjugate gradient solver"""
 
-from typing import Callable
+from collections.abc import Callable, Iterable
 
 import torch
 
@@ -9,8 +9,8 @@ def conjugate_gradient(
     matmul_closure: Callable[[torch.Tensor], torch.Tensor],
     d: torch.Tensor,
     x0: torch.Tensor,
-    max_iter: int,
-    tol: float,
+    iterator: Iterable = range(10),
+    tol: float = 1e-7,
 ) -> torch.Tensor:
     """
     Conjugate gradient solver.
@@ -23,10 +23,10 @@ def conjugate_gradient(
         The right-hand side vector.
     x0 : torch.Tensor
         The initial guess for the solution.
-    max_iter : int
-        Maximum number of iterations.
-    tol : float
-        Tolerance for convergence.
+    iterator : Iterable, optional
+        An iterable to control the number of iterations (default is range(10)).
+    tol : float, optional
+        Tolerance for convergence (default is 1e-7).
 
     Returns
     -------
@@ -39,10 +39,11 @@ def conjugate_gradient(
     d = r.clone()
     rr = torch.sum(r**2)
 
-    for _ in range(max_iter):
+    for _ in iterator:
         z = matmul_closure(d)
 
         dz = torch.sum(d * z)
+        # print(f"Device: x:{x.device}, d:{d.device}, z:{z.device}, r:{r.device}")
         # Check for breakdown
         if abs(dz) < 1e-14:
             break

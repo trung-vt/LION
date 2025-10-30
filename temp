@@ -1,0 +1,14 @@
+(lion_base) ttv22@ssh-serv4:~/LION_ttv$ conda list | grep astra
+astra-toolbox             2.4.0           py312hf5d4436_0    astra-toolbox
+libastra                  2.4.0               cuda_12.9_0    astra-toolbox
+numpy                     2.3.4           py312h33ff503_0    conda-forge
+
+
+
+(lion_base) ttv22@ssh-serv4:~$ du -h -d1 /store/LION/ttv22/
+31G     /store/LION/ttv22/anaconda
+9.9M    /store/LION/ttv22/.local
+11K     /store/LION/ttv22/micromamba
+238M    /store/LION/ttv22/setups
+413M    /store/LION/ttv22/miniforge3
+31G     /store/LION/ttv22/

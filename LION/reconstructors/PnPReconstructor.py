@@ -1,6 +1,7 @@
 """Plug-and-Play Reconstructor using a denoiser as prior."""
 
-from typing import Callable, Literal, Union
+from collections.abc import Callable, Iterable
+from typing import Literal, Union
 
 import numpy as np
 import torch
@@ -104,7 +105,11 @@ class PnPReconstructor(LIONReconstructor):
         x = fdk(sino, self.op)  # Use FDK as an initial guess
         z = torch.zeros_like(x)
         for i in range(max_iter):
-            x = x - 1 / (sigma**2) * self.op.adjoint(self.op(x) - sino) + 2 * mu * (x - z)
+            x = (
+                x
+                - 1 / (sigma**2) * self.op.adjoint(self.op(x) - sino)
+                + 2 * mu * (x - z)
+            )
             if (
                 hasattr(self.model_parameters, "use_noise_level")
                 and self.model_parameters.use_noise_level
@@ -156,9 +161,9 @@ class PnPReconstructor(LIONReconstructor):
         self,
         measurement: torch.Tensor,
         eta: float = 1e-4,
-        max_iter: int = 10,
-        cg_max_iter: int = 100,
-        cg_tol: float = 1e-7
+        iterator: Iterable = range(10),
+        cg_iterator: Iterable = range(10),
+        cg_tol: float = 1e-7,
     ) -> torch.Tensor:
         x = torch.zeros(self.op.domain_shape, device=measurement.device)
         v = torch.zeros(self.op.domain_shape, device=measurement.device)
@@ -168,9 +173,12 @@ class PnPReconstructor(LIONReconstructor):
             return self.op.adjoint(self.op(x)) + eta * x
 
         AT_y = self.op.adjoint(measurement)
-        for _ in range(max_iter):
+        for _ in iterator:
             d = AT_y + eta * (v - u)
-            x = conjugate_gradient(matmul_closure, d, x, max_iter=cg_max_iter, tol=cg_tol)
+            # print(f"Running CG for ADMM iteration {_+1}/{max_iter}...")
+            x = conjugate_gradient(
+                matmul_closure, d, x, iterator=cg_iterator, tol=cg_tol
+            )
             v = self.denoiser(x + u)
             u = u + (x - v)
         return x
