@@ -83,7 +83,7 @@ jobs:
       - name: Build docs
         shell: bash -l {0}
         run: |
-          sphinx-build -b html ./docs/source ./docs/build/html
+          NORUN=1 make html
           rm -rf ./docs/build/html/.doctrees
 
       - name: Upload documentation artifact

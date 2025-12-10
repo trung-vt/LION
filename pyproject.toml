@@ -18,6 +18,9 @@ include-package-data = true
 
 [project]
 name = "LION"
+authors = [
+  { name = "LION developers" }
+]
 description = ""
 readme = "README.md"
 requires-python = ">=3.9, <3.13"  # Python 3.13 and later no longer supports numpy 1.x which might be needed
