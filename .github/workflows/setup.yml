@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  setup_LION:
     runs-on: ubuntu-latest
 
     steps:
