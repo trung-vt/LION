@@ -4,3 +4,27 @@ repos:
     hooks:
     -   id: black
 
+-   repo: local
+    hooks:
+    -   id: jupytext
+        name: convert .py to .ipynb
+        language: python
+
+        additional_dependencies:
+        -   jupytext
+        entry: >
+            jupytext
+            --update
+            --to
+            "../../examples/notebooks//ipynb"
+            --update-metadata
+            '{
+              "accelerator": "GPU",
+              "colab": {"gpuType": "T4","provenance": []},
+              "kernelspec": {"display_name": "Python 3 (ipykernel)","language": "python","name": "python3"}
+            }'
+            --opt cell_metadata_filter=mystnb,tags,-all
+        always_run: true
+        pass_filenames: true
+        files: ^scripts/example_scripts/photocurrent_mapping.py
+        types_or: [python]
