@@ -22,7 +22,7 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.9, <3.13"  # Python 3.13 and later no longer supports numpy 1.x which might be needed
 license = { file = "LICENSE" }
-dynamic = ["version"]
+version = "0.0.1"
 dependencies = [
     # IMPORTANT: astra-toolbox needs to be installed with conda first!
     # While astra-tool is available on pip, it is recommended to install it via conda due to better compatibility with CUDA and system libraries.
