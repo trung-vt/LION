@@ -1,9 +1,6 @@
 name: Manual Hello
 
 on:
-  push:
-    branches:
-      - general_op_and_pcm_with_notebooks
   workflow_dispatch:
 
 jobs:
