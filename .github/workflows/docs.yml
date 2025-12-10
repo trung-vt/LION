@@ -1,4 +1,4 @@
-name: Set Up LION and Build Sphinx Docs
+name: Build Sphinx Docs
 
 on:
   push:
@@ -44,6 +44,9 @@ jobs:
           environment-file: env_base.yml
           environment-name: lion
           cache-environment: true
+
+      - name: Show conda envs
+        run: micromamba env list
 
       - name: Checkout
         uses: actions/checkout@v6
