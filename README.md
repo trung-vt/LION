@@ -19,7 +19,7 @@ Install:
 git clone https://github.com/CambridgeCIA/LION.git
 cd LION
 git submodule update --init --recursive            # Legacy: for MSD_pytorch_
-conda env create --file=env_base.yml --name=lion   # You can change 'lion' to a different env name
+conda env create --file=env.yml --name=lion   # You can change 'lion' to a different env name
 conda activate lion
 pip install .
 ```
@@ -27,10 +27,10 @@ pip install .
 If you would like to contribute to the development of LION, you can replace the last line of the above set of commands by
 
 ```
-pip install -e ".[dev]"
+pip install -e .
 ```
 
-to make the installation editable (i.e. changes you make to the source will be visible when you restart the REPL or start a new Python process) and include additional development dependencies like `pre-commit`.
+to make the installation editable (i.e. changes you make to the source will be visible when you restart the REPL or start a new Python process).
 Afterwards, install the pre-commit hooks for auto-formating your commits. We use Black for code formatting (see [.pre-commit-config.yaml](.pre-commit-config.yaml)):
 
 ```

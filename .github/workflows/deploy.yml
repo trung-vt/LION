@@ -29,7 +29,7 @@ jobs:
       - name: Set up micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: env_base.yml
+          environment-file: env.yml
           environment-name: lion
           cache-environment: true
 
@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('env_base.yml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('env.yml', 'pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 

@@ -47,7 +47,7 @@ jobs:
       - name: Set up micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: env_base.yml
+          environment-file: env.yml
           environment-name: lion
           cache-environment: true
 
