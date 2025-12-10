@@ -1,10 +1,14 @@
-name: Set Up LION and Build Sphinx Docs
+name: Set Up LION
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: false
+        default: main
 
 permissions:
   contents: write
@@ -14,29 +18,8 @@ defaults:
     shell: bash -l {0}
 
 jobs:
-  get_notebooks:
-    name: Get list of notebooks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout LION repo
-        uses: actions/checkout@v6
-
-      - id: set-matrix
-        shell: bash -l {0}
-        run: |
-          echo "notebook_paths=$(find examples/notebooks -type f -name '*.ipynb' | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
-
-      - name: Notebook overview
-        shell: bash -l {0}
-        run: |
-          echo "jupyter-notebooks: ${{ steps.set-matrix.outputs.notebook_paths }}"
-
-    outputs:
-      notebook_paths: ${{ steps.set-matrix.outputs.notebook_paths }}
-
-  setup_LION_and_build_docs:
-    name: Set up LION then Build and deploy documentation
-    needs: get_notebooks
+  setup_LION:
+    name: Set up LION
     runs-on: ubuntu-latest
 
     steps:
@@ -51,7 +34,6 @@ jobs:
           cache-environment: true
 
       - name: Show conda envs
-        shell: bash -l {0}
         run: micromamba env list
 
       - name: Cache pip downloads
@@ -63,52 +45,5 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install all dependencies
-        shell: bash -l {0}
         run: |
           python -m pip install -e .[dev]
-
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0 # fetch history for github links
-          fetch-tags: true
-
-      - name: Download executed notebook ipynb files
-        id: download
-        uses: actions/download-artifact@v6
-        with:
-          path: ./docs/source/_notebooks/
-          merge-multiple: true
-
-      - name: Build docs
-        shell: bash -l {0}
-        run: |
-          NORUN=1 make html
-          rm -rf ./docs/build/html/.doctrees
-
-      - name: Upload documentation artifact
-        id: upload_docs
-        uses: actions/upload-artifact@v5
-        with:
-          name: Documentation
-          path: docs/build/html/
-
-      # if the one of above steps fails the "artifact-url" will be an empty string
-      - name: Dump documentation info
-        if: always()
-        shell: bash -l {0}
-        run: |
-          echo "${{ steps.upload_docs.outputs.artifact-url }}" > artifact_url
-
-      - name: Upload docs-metadata artifact
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: artifact_url
-          path: artifact_url
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-
-  # Cancel in-progress runs when a new workflow with the same group name is triggered
-  cancel-in-progress: true
