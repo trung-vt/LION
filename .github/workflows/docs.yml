@@ -43,6 +43,12 @@ jobs:
           fetch-depth: 0 # fetch history for github links
           fetch-tags: true
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
       - name: Install LION and dependencies
         run: pip install -e .[docs]
 
