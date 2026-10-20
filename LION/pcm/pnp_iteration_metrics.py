@@ -19,7 +19,7 @@ import tyro
 from tqdm import tqdm
 
 from LION.experiments.pcm_experiments import PCMExperimentParameter, make_test_cases
-from LION.pcm.config_cli import parse_pcm_experiment_config_cli
+from LION.pcm.config_cli import parse_pcm_experiment_config_cli, show_preset_help
 from LION.pcm.output_paths import name_with_datetime_prefix
 from LION.pcm.pnp_analysis_io import save_analysis_definition
 from LION.pcm.run_pcm_single_sample_experiment import (
@@ -197,6 +197,10 @@ def parse_pnp_iteration_metrics_cli(
     """Parse comparison-specific options, then the existing PCM experiment options."""
     if argv is None:
         argv = sys.argv[1:]
+
+    if "-h" in argv or "--help" in argv:
+        show_preset_help()
+        tyro.cli(PnPIterationMetricsParameter, args=["--help"])
 
     comparison_config, pcm_args = tyro.cli(
         PnPIterationMetricsParameter,
