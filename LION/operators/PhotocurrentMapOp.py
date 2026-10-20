@@ -273,7 +273,7 @@ class PhotocurrentMapOp(Operator):
             Tensor with the last two dimensions flattened.
         """
         # return x.view(-1)
-        return x.flatten(start_dim=-2)
+        return x if x.ndim == 1 else x.flatten(start_dim=-2)
 
     def unvectorize(self, x: torch.Tensor) -> torch.Tensor:
         """Unvectorize the last dimension to the image shape.
