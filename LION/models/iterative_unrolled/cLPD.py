@@ -1,5 +1,5 @@
 # This file is part of AItomotools library
-# License : BSD-3
+# License : GPL-3
 #
 # Author  : Ander Biguri & Christina Runkel
 # Modifications: -
@@ -440,7 +440,7 @@ class cLPD(LIONmodel):
     @staticmethod
     def cite(cite_format="MLA"):
         if cite_format == "MLA":
-            print(" Jin, Kyong Hwan, et al.")
+            print("Runkel, Christina, Ander Biguri, and Carola-Bibiane Schönlieb.")
             print('"Continuous Learned Primal Dual"')
             print("\x1B[3m ArXiv \x1B[0m")
             print("(2024): 2405.02478.")

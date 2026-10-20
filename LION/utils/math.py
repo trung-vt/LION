@@ -25,6 +25,8 @@ def power_method(
     Returns:
         Estimated operator norm.
     """
+    if device is None:
+        device = getattr(op, "device", None)
     arr_old = torch.randn(*op.domain_shape, device=device)
     error = tol + 1
     i = 0
