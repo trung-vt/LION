@@ -112,3 +112,20 @@ def test_pcm_batch_adjointness():
     rhs = torch.sum(x * operator.adjoint(y))
 
     torch.testing.assert_close(lhs, rhs, rtol=1e-10, atol=1e-10)
+
+
+def test_legacy_pcm_call_uses_unnormalized_wht():
+    """Legacy PCM constructor preserves upstream unnormalized operator scaling."""
+    from LION.operators.PhotocurrentMapOp import PhotocurrentMapOp, Subsampler
+
+    subsampler = Subsampler(n=256, coarseJ=3, delta=0.25)
+    legacy = PhotocurrentMapOp(J=4, subsampler=subsampler)
+    positional = PhotocurrentMapOp(4, subsampler)
+    modern = PhotocurrentMapOp(j_order=4, s_indices=subsampler.subsampled_indices)
+    explicit_normalized = PhotocurrentMapOp(J=4, subsampler=subsampler, normalized=True)
+    x = torch.randn(16, 16, dtype=torch.float64)
+    torch.testing.assert_close(legacy(x), 16 * modern(x))
+    torch.testing.assert_close(positional(x), legacy(x))
+    torch.testing.assert_close(explicit_normalized(x), modern(x))
+    assert legacy.normalization_factor == 1.0
+    assert modern.normalization_factor == 1.0 / 16.0

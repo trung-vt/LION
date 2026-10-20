@@ -210,9 +210,9 @@ class PhotocurrentMapOp(Operator):
     def __init__(
         self,
         j_order: int | None = None,
-        s_indices: Sequence[int] | np.ndarray | None = None,
+        s_indices: Sequence[int] | np.ndarray | Subsampler | None = None,
         wht_dim: int = -1,
-        normalized: bool = True,
+        normalized: bool | None = None,
         device: DeviceLikeType | None = None,
         *,
         J: int | None = None,
@@ -224,9 +224,21 @@ class PhotocurrentMapOp(Operator):
             j_order: The exponent such that the image size is (2^j_order, 2^j_order).
             s_indices: The indices of the measurements to be taken, in coarse-to-fine (dyadic) order.
             wht_dim: The dimension along which to apply the WHT. Default is -1 (last dimension).
-            normalized: Whether to normalize the WHT by dividing by the number of elements. Default is True.
+            normalized: Whether to normalize the WHT by dividing by its square-root size.
+                If None, use normalized WHT for the modern API and unnormalized WHT for
+                legacy J/subsampler calls.
             device: Device where tensors are placed.
         """
+        legacy_call = (
+            J is not None or subsampler is not None or isinstance(s_indices, Subsampler)
+        )
+        if isinstance(s_indices, Subsampler):
+            if subsampler is not None:
+                raise ValueError("Subsampler was specified twice.")
+            subsampler = s_indices
+            s_indices = None
+        if normalized is None:
+            normalized = not legacy_call
         if j_order is None:
             j_order = J
         elif J is not None and j_order != J:
