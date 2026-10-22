@@ -25,6 +25,7 @@ def default_device() -> torch.device:
        if CUDA is available;
     3. the CPU.
     """
+    # TODO: Add MPS for Apple Silicon? See https://pytorch.org/docs/stable/notes/mps.html
     get_default = getattr(torch, "get_default_device", None)  # torch >= 2.3
     if get_default is not None:
         device = get_default()

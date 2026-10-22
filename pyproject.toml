@@ -43,18 +43,41 @@ dependencies = [
     "mlflow",
     "mrpro",
     # "opencv-python",
+    # "deepinv",  # pretrained DRUNet
+    # "h5py",
+    # "imageio",
+    # "kornia",  # LION/optimizers/GaussianDenoiserSolver.py
+    # "lightning",
+    # "matplotlib",
+    "mlflow",
+    "mrpro",
+    # "numpy",
+    # "opencv-python",
+    # "pandas",
     # "pillow",
     "piq",
     "ptwt",  # Wavelet transforms for PyTorch, for photocurrent mapping reconstruction baseline
+    # "pydicom",
     "pylidc",
+    # "PyWavelets",  # Wavelet transforms for Numpy
     "pytorch-wavelets",  # Wavelet transforms for PyTorch (TODO: switch to ptwt)
     "rich",
+    # "scikit-image",
+    # "scipy",
+    # "spgl1",  # SPGL1 solver, for baseline photocurrent mapping reconstruction method
     "spyrit",  # Fast Walsh-Hadamard Transform
+    # "tifffile",
+    # "torch",
+    # "torchdiffeq",
     # "torchmetrics",
+    # "torchvision",
     "tqdm",
     "tyro",
     "LION[codestyle]",
 ]
+
+[project.scripts]
+lion-pcm-gui = "LION.pcm.gui.app:main"
 
 [project.optional-dependencies]
 # Everything else LION modules import. These normally come from conda
@@ -111,17 +134,26 @@ notebooks = [
 ci = [
     "pre-commit",
 ]
-dev = ["LION[tests, docs, ci]"]
+gui = [
+    # "PySide6",
+    "matplotlib",
+    "nuitka",
+    "ordered-set",
+    "zstandard",
+]
+dev = ["LION[tests, docs, ci, gui]"]
 
 # PyTest section
 [tool.pytest.ini_options]
 testpaths = ["pytests"]  # not "tests": tomosipo installs a top-level `tests` package
+# testpaths = ["tests"]
 filterwarnings = [
     "error",
     "ignore:Anomaly Detection has been enabled:UserWarning",                   # torch.autograd
     "ignore:.*In the future, this object will be coerced as if it was first converted using.*:FutureWarning", # numpy 1.2
     "ignore:pkg_resources is deprecated as an API:UserWarning",  # ignore warning when importing pytorch_wavelets (if not tests will fail)
     "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",  # ignore warning when importing pytorch_wavelets (if not tests will fail)
+    "ignore:invalid escape sequence.*:SyntaxWarning",  # ignore warning when importing pytorch_wavelets (if not tests will fail)
 ]
 addopts = "-n auto --dist loadfile --maxprocesses=8"
 markers = [
