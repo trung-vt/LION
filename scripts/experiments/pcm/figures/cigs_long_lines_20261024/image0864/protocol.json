@@ -1,0 +1,33 @@
+{
+  "source_file": "/store/LION/ttv22/pcm/data/PCM Synthetic Data Set/Synthetic Data/Synthetic Data/CIGS/image0864.png",
+  "branch": "experiments_10",
+  "checkpoint": "/store/LION/ttv22/pcm/results/pcm/pcm_supervised/20260920_025657_TV/checkpoints/best_val_loss_s0.20_cJ6.pt",
+  "config": "/store/LION/ttv22/pcm/results/pcm/pcm_supervised/20260920_025657_TV/resolved_config.yaml",
+  "checkpoint_epoch": 99,
+  "checkpoint_global_step": 39600,
+  "sample_name": "artifacts/CIGS/sample_0864",
+  "category": "CIGS",
+  "sample_id": 864,
+  "trial": 1,
+  "rng_seed": 1987854162,
+  "sampling_ratio": 0.2,
+  "coarse_j": 6,
+  "n_measurements": 13107,
+  "noise": "PCM noise simulation - NPL default",
+  "gpu": "NVIDIA GeForce RTX 4070",
+  "oracle_noise_norm": 6.826559543609619,
+  "line_roi": {
+    "orientation": "horizontal",
+    "axis": 167,
+    "start": 40,
+    "stop": 213
+  },
+  "ground_truth_line_contrast": 0.2707166484757966,
+  "baseline_methods": [
+    "spgl1",
+    "pnp_gs_deepinv_drunet"
+  ],
+  "fixed": "parameter map frozen from first data target",
+  "reestimated": "recompute CG input and TV map from y+b at each iteration",
+  "note": "Five diagnostic iterations despite discrepancy criterion; variable-map convergence is not implied by fixed-J theory."
+}
