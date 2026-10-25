@@ -23,6 +23,7 @@ from LION.pcm.pcm_config import (
 from LION.pcm.pcm_model_input import make_pcm_model_input
 from LION.pcm.reconstruct import AdaptiveMapReconOutput
 from LION.pcm_tools.pcm_sampling import make_sampling_cases
+from LION.pcm_tools.pcm_sampling import PCMAcquisitionSamplingCase
 from LION.train.training_components import ForwardResult, ForwardRunner, ModelInput
 from LION.utils.artifact_contract import candidate_checkpoint_stems
 from LION.utils.types import StateDict
@@ -177,9 +178,10 @@ def resolve_trained_pcm_checkpoint(run_dir: Path, spec: str) -> Path:
 def load_trained_pcm_checkpoint_model(
     *,
     config: SAPMSupervisedPCMConfig | SAPMSelfSupervisedPCMConfig,
-    cases: list[tuple[float, int]],
+    cases: list[tuple[float, int]] | list[PCMAcquisitionSamplingCase],
     checkpoint_path: Path,
     device: torch.device,
+    model_keys: tuple[int, ...] | None = None,
 ) -> tuple[AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork, int, int]:
     """Construct a trained PCM model and load one training checkpoint."""
     pretrained = replace(
@@ -196,7 +198,7 @@ def load_trained_pcm_checkpoint_model(
     model, _ = load_sapm_pcm_model(
         load_config,
         ModelSetup(
-            keys=tuple(range(len(cases))),
+            keys=(model_keys if model_keys is not None else tuple(range(len(cases)))),
             map_shape=(n_maps, n, n),
         ),
     )
@@ -215,9 +217,10 @@ def resolve_supervised_pcm_checkpoint(run_dir: Path, spec: str) -> Path:
 def load_supervised_pcm_checkpoint_model(
     *,
     config: SAPMSupervisedPCMConfig,
-    cases: list[tuple[float, int]],
+    cases: list[tuple[float, int]] | list[PCMAcquisitionSamplingCase],
     checkpoint_path: Path,
     device: torch.device,
+    model_keys: tuple[int, ...] | None = None,
 ) -> tuple[AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork, int, int]:
     """Construct a supervised PCM model and load one training checkpoint."""
     return load_trained_pcm_checkpoint_model(
@@ -225,6 +228,7 @@ def load_supervised_pcm_checkpoint_model(
         cases=cases,
         checkpoint_path=checkpoint_path,
         device=device,
+        model_keys=model_keys,
     )
 
 

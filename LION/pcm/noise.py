@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Literal
 
 import numpy as np
 from pathlib import Path
 
 from LION.utils.parameter import LIONParameter
+from LION.data_loaders.pcm.data_primitives import PCMRandomRange
 from LION.config.config_utils import make_dataclass
 
 
@@ -136,39 +136,12 @@ def load_pcm_noise_simulation(
 
 
 @dataclass(kw_only=True)
-class PCMRandomRange:
-    """Uniform, log-uniform, or zero-inclusive shifted-log scalar range."""
-
-    low: float
-    high: float
-    distribution: Literal["uniform", "log_uniform", "shifted_log_uniform"]
-    shift_fraction: float = 0.001
-
-    def draw(self, rng: np.random.Generator) -> float:
-        if not (0 <= self.low < self.high):
-            raise ValueError("Require 0 <= low < high")
-        if self.distribution == "uniform":
-            return float(rng.uniform(self.low, self.high))
-        if self.distribution == "log_uniform":
-            if self.low == 0:
-                raise ValueError("Log-uniform sampling requires a positive lower bound")
-            return float(np.exp(rng.uniform(np.log(self.low), np.log(self.high))))
-        if self.low != 0 or not (0 < self.shift_fraction < 1):
-            raise ValueError(
-                "Shifted-log sampling requires low=0 and 0<shift_fraction<1"
-            )
-        shift = self.high * self.shift_fraction
-        # Log-uniform in sigma + shift, spanning sigma in [0, high].
-        return float(shift * np.expm1(rng.uniform(0, np.log1p(self.high / shift))))
-
-
-@dataclass(kw_only=True)
 class PCMAcquisitionVariation:
     """Sample one ratio and NPL sigma parameters without changing the simulator."""
 
-    sampling_ratio: PCMRandomRange
     noise_sigma_ranges: dict[str, PCMRandomRange]
     current_to_model_scale: float
+    sampling_ratio: PCMRandomRange | None = None  # Legacy config: migrate to sampling.
 
     def __post_init__(self):
         if isinstance(self.sampling_ratio, dict):
@@ -188,6 +161,22 @@ class PCMAcquisitionVariation:
         ):
             raise ValueError("Invalid PCM current-to-model scale")
 
+    def draw_noise(
+        self,
+        rng: np.random.Generator,
+        *,
+        noise: PCMNoiseSimulation,
+        j_order: int,
+    ) -> PCMNoiseSimulation:
+        """Draw only the sigma parameters, keeping the supplied NPL baseline."""
+        sigmas = {
+            name: spec.draw(rng) for name, spec in self.noise_sigma_ranges.items()
+        }
+        sigmas["dark_sigma"] = sigmas.pop("dark_sigma_raw") * (
+            self.current_to_model_scale / (1 << j_order)
+        )
+        return replace(noise, noise_params=replace(noise.noise_params, **sigmas))
+
     def draw(
         self,
         rng: np.random.Generator,
@@ -195,13 +184,8 @@ class PCMAcquisitionVariation:
         noise: PCMNoiseSimulation,
         j_order: int,
     ) -> tuple[float, PCMNoiseSimulation]:
+        """Backward-compatible legacy acquisition variation."""
+        if self.sampling_ratio is None:
+            raise ValueError("Draw the ratio from sampling, then call draw_noise.")
         ratio = self.sampling_ratio.draw(rng)
-        if not (0 < ratio <= 1):
-            raise ValueError("Sampling ratio must be in (0,1]")
-        sigmas = {
-            name: spec.draw(rng) for name, spec in self.noise_sigma_ranges.items()
-        }
-        sigmas["dark_sigma"] = sigmas.pop("dark_sigma_raw") * (
-            self.current_to_model_scale / (1 << j_order)
-        )
-        return ratio, replace(noise, noise_params=replace(noise.noise_params, **sigmas))
+        return ratio, self.draw_noise(rng, noise=noise, j_order=j_order)

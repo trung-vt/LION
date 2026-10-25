@@ -17,10 +17,14 @@ from LION.config.LogConfig import (
     ScalarMapRenderConfig,
 )
 from LION.data_loaders.pcm.data_loader import PCMSyntheticPNGTorchDataset
-from LION.experiments.pcm_experiments import make_test_cases
+from LION.pcm_tools.pcm_sampling import make_sampling_cases
 from LION.models.AdaptiveTGVPCMNetwork import AdaptiveTGVPCMNetwork
 from LION.models.AdaptiveTVPCMNetwork import AdaptiveTVPCMNetwork
-from LION.pcm.pcm_config import load_pcm_sapm_supervised_config
+from LION.pcm.pcm_config import (
+    load_pcm_sapm_supervised_config,
+    make_supervised_pcm_training_cases,
+    supervised_pcm_scale_keys,
+)
 from LION.pcm.pcm_result_writer import PCMResultWriter
 from LION.pcm.pcm_sapm import (
     forward_func_sapm_pcm,
@@ -74,7 +78,29 @@ class SupervisedPCMTester:
             self.config.noise = None
         self.output_dir = args.output_dir or self.run_dir
 
-        self.cases = make_test_cases(self.config)  # type: ignore[arg-type]
+        self.training_cases = make_supervised_pcm_training_cases(self.config)
+        self.scale_keys = supervised_pcm_scale_keys(self.config)
+        self.test_sampling = self.config.test_sampling or self.config.sampling
+        # Test cases are independent of validation and can be specified at CLI.
+        if args.sampling_ratios is not None:
+            self.test_sampling = dataclasses.replace(
+                self.test_sampling,
+                sampling_ratios=args.sampling_ratios,
+                sampling_ratio_range=None,
+            )
+        if args.coarse_j_values is not None:
+            self.test_sampling = dataclasses.replace(
+                self.test_sampling,
+                coarse_j_values=args.coarse_j_values,
+                coarse_j_offsets_from_j_order=None,
+            )
+        if self.test_sampling.effective_ratio_range is not None:
+            raise ValueError(
+                "Specify discrete test ratios in test_sampling or the tester CLI."
+            )
+        j_order = self.config.data.j_order
+        assert j_order is not None
+        self.cases = make_sampling_cases(j_order=j_order, sampling=self.test_sampling)
         self.dataset = PCMSyntheticPNGTorchDataset(self.config.data)
 
         self.categories = (
@@ -93,25 +119,30 @@ class SupervisedPCMTester:
         else:
             self.sample_ids = args.sample_ids
 
-        if args.reuse_single_scale_factor_key:
-            if len(self.cases) != 1:
-                raise ValueError(
-                    "Reusing one scale-factor key requires one configured case."
-                )
+        if args.reuse_single_scale_factor_key and len(self.scale_keys) != 1:
+            raise ValueError("Explicit scale-key reuse requires one model scale key.")
+        shared = (
+            args.reuse_single_scale_factor_key
+            or self.config.sampling.share_scale_factor_across_ratios
+            or any(c.sampling_ratio_range is not None for c in self.training_cases)
+        )
+        if shared:
             self.selected_cases = [
-                (0, ratio, coarse_j)
-                for ratio in (args.sampling_ratios or [self.cases[0][0]])
-                for coarse_j in (args.coarse_j_values or [self.cases[0][1]])
+                (self.scale_keys[0], ratio, coarse_j) for ratio, coarse_j in self.cases
             ]
         else:
-            self.selected_cases = [
-                (key, sampling_ratio, coarse_j)
-                for key, (sampling_ratio, coarse_j) in enumerate(self.cases)
-                if (
-                    args.sampling_ratios is None
-                    or sampling_ratio in args.sampling_ratios
+            lookup = {
+                (case.sampling_ratio, case.coarse_j): key
+                for key, case in enumerate(self.training_cases)
+            }
+            if any(case not in lookup for case in self.cases):
+                raise ValueError(
+                    "Test sampling differs from trained cases without a shared "
+                    "scale-factor key. Enable sharing at train time."
                 )
-                and (args.coarse_j_values is None or coarse_j in args.coarse_j_values)
+            self.selected_cases = [
+                (lookup[(ratio, coarse_j)], ratio, coarse_j)
+                for ratio, coarse_j in self.cases
             ]
 
         if not self.selected_cases:
@@ -128,9 +159,10 @@ class SupervisedPCMTester:
         """Construct the model with the original keys and load one checkpoint."""
         return load_supervised_pcm_checkpoint_model(
             config=self.config,
-            cases=self.cases,
+            cases=self.training_cases,
             checkpoint_path=checkpoint_path,
             device=self.device,
+            model_keys=self.scale_keys,
         )
 
     def get_target(self, *, category: str, sample_id: int) -> torch.Tensor:
@@ -170,7 +202,7 @@ class SupervisedPCMTester:
         acquisition = sample_and_simulate_pcm_acquisition(
             target_bchw,
             j_order=j_order,
-            sampling=self.config.sampling,
+            sampling=self.test_sampling,
             sampling_ratio=sampling_ratio,
             coarse_j=coarse_j,
             noise=self.config.noise,
@@ -216,7 +248,7 @@ class SupervisedPCMTester:
                 target_bchw,
                 j_order=j_order,
                 sampling=dataclasses.replace(
-                    self.config.sampling, randomising_scheme=None
+                    self.test_sampling, randomising_scheme=None
                 ),
                 sampling_ratio=sampling_ratio,
                 coarse_j=coarse_j,

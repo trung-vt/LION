@@ -18,15 +18,24 @@ from LION.config.ExperimentConfig import (
 )
 from LION.config.RuntimeDirs import get_run_dirs
 from LION.data_loaders.pcm.data_loader import PCMSyntheticPNGTorchDataset
-from LION.data_loaders.pcm.data_primitives import SamplesParameter
+from LION.data_loaders.pcm.data_primitives import (
+    PCMSamplingParameter,
+    SamplesParameter,
+)
 from LION.models.AdaptiveTGVPCMNetwork import AdaptiveTGVPCMNetwork
 from LION.models.AdaptiveTVPCMNetwork import AdaptiveTVPCMNetwork
 from LION.models.model_loader import ModelLoader, ModelSetup
-from LION.pcm.pcm_config import SAPMSupervisedPCMConfig
+from LION.pcm.pcm_config import (
+    SAPMSupervisedPCMConfig,
+    make_supervised_pcm_training_cases,
+    make_supervised_pcm_validation_cases,
+    supervised_pcm_scale_keys,
+)
+from LION.pcm_tools.pcm_sampling import PCMAcquisitionSamplingCase
+from LION.pcm.noise import PCMNoiseSimulation
 from LION.pcm.noise import PCMNoiseSimulation
 from LION.pcm.pcm_sapm import PCMForwardData, make_pcm_forward_data
 from LION.pcm.simulation import PCMAcquisition, sample_and_simulate_pcm_acquisition
-from LION.pcm_tools.pcm_sampling import make_sampling_cases
 from LION.train.Logger import LogBy, Logger
 from LION.train.Trainer import Trainer, run_trainer_with_mlflow, save_typed_config
 from LION.train.training_components import ForwardRunner, ParameterGroupBuilder
@@ -59,7 +68,19 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         assert self.config.uses_normalized_op
         j_order = self.config.data.j_order
         assert j_order is not None
-        self.cases = make_sampling_cases(j_order=j_order, sampling=self.config.sampling)
+        self.cases = make_supervised_pcm_training_cases(self.config)
+        self.validation_cases = make_supervised_pcm_validation_cases(self.config)
+        self.scale_keys = supervised_pcm_scale_keys(self.config)
+        if len(self.scale_keys) == 1:
+            self.validation_scale_keys = tuple(0 for _ in self.validation_cases)
+        else:
+            if any(case not in self.cases for case in self.validation_cases):
+                raise ValueError(
+                    "Different validation cases require a shared scale-factor key."
+                )
+            self.validation_scale_keys = tuple(
+                self.cases.index(case) for case in self.validation_cases
+            )
 
         assert self.config.data.samples is not None
         assert self.config.data.samples.ids is not None
@@ -94,9 +115,7 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         n = self.config.data.n
         super()._setup(
             epoch_size=steps_per_epoch,
-            model_setup=ModelSetup(
-                keys=tuple(range(len(self.cases))), map_shape=(n_maps, n, n)
-            ),
+            model_setup=ModelSetup(keys=self.scale_keys, map_shape=(n_maps, n, n)),
         )
 
         self.train_loader = DataLoader(
@@ -115,7 +134,8 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
             self.optimizer,
             self.rng,
             epoch_size=len(self.train_dataset),
-            cases=self.cases,
+            cases=self.validation_cases,
+            scale_keys=self.scale_keys,
             training_state=self.state,
         )
 
@@ -127,20 +147,29 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         rng: np.random.Generator,
         device: torch.device | str,
         sampling_ratio_override: float | None = None,
+        coarse_j_override: int | None = None,
+        sampling_override: PCMSamplingParameter | None = None,
         noise_override: PCMNoiseSimulation | None = None,
     ) -> PCMAcquisition:
-        sampling_ratio, coarse_j = self.cases[key]
-        if sampling_ratio_override is not None:
-            sampling_ratio = sampling_ratio_override
+        """Use LION's canonical PCM simulator with explicit acquisition settings."""
+        if sampling_ratio_override is None or coarse_j_override is None:
+            case = self.cases[key]
+        else:
+            case = None
+        ratio = (
+            case.draw_ratio(rng)
+            if sampling_ratio_override is None
+            else sampling_ratio_override
+        )
+        coarse_j = case.coarse_j if coarse_j_override is None else coarse_j_override
         j_order = self.config.data.j_order
         assert j_order is not None
 
-        target_image = target_image.unsqueeze(1).to(device)  # Add channel dimension
         return sample_and_simulate_pcm_acquisition(
-            target_image,
+            target_image.unsqueeze(1).to(device),
             j_order=j_order,
-            sampling=self.config.sampling,
-            sampling_ratio=sampling_ratio,
+            sampling=sampling_override or self.config.sampling,
+            sampling_ratio=ratio,
             coarse_j=coarse_j,
             noise=self.config.noise if noise_override is None else noise_override,
             rng=rng,
@@ -154,32 +183,40 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         key: int,
         rng: np.random.Generator,
         device: torch.device | str,
+        sampling_case: PCMAcquisitionSamplingCase | None = None,
+        sampling_config: PCMSamplingParameter | None = None,
+        scale_key: int | None = None,
     ) -> PCMForwardData:
-        sampling_ratio, coarse_j = self.cases[key]
+        case = sampling_case or self.cases[key]
+        ratio = case.draw_ratio(rng)
         noise = None
         if self.config.acquisition_variation is not None:
             if self.config.noise is None:
-                raise ValueError(
-                    "Random noise parameters require a base PCM noise preset"
-                )
-            sampling_ratio, noise = self.config.acquisition_variation.draw(
-                rng, noise=self.config.noise, j_order=self.config.data.j_order
+                raise ValueError("Random noise sigmas require a base PCM noise preset.")
+            j_order = self.config.data.j_order
+            assert j_order is not None
+            noise = self.config.acquisition_variation.draw_noise(
+                rng, noise=self.config.noise, j_order=j_order
             )
         acquisition = self.make_acquisition(
             target_image,
             key=key,
             rng=rng,
             device=device,
-            sampling_ratio_override=sampling_ratio,
+            sampling_ratio_override=ratio,
+            coarse_j_override=case.coarse_j,
+            sampling_override=sampling_config,
             noise_override=noise,
         )
         return make_pcm_forward_data(
             config=self.config,
             op=acquisition.op,
             measurement=acquisition.measurement,
-            key=key,
-            sampling_ratio=sampling_ratio,
-            coarse_j=coarse_j,
+            key=(0 if len(self.scale_keys) == 1 else key)
+            if scale_key is None
+            else scale_key,
+            sampling_ratio=ratio,
+            coarse_j=case.coarse_j,
             device=device,
         )
 
@@ -201,7 +238,15 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         rng: np.random.Generator,
         device: torch.device | str,
     ) -> PCMForwardData:
-        return self.make_forward_data(target_image, key=key, rng=rng, device=device)
+        return self.make_forward_data(
+            target_image,
+            key=key,
+            rng=rng,
+            device=device,
+            sampling_case=self.validation_cases[key],
+            sampling_config=self.config.validation_sampling or self.config.sampling,
+            scale_key=self.validation_scale_keys[key],
+        )
 
     def forward_step(self, data: PCMForwardData, *, skip_grad_checkpoint: bool):
         return self.forward_runner(
@@ -238,10 +283,17 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         self.model.eval()
 
         with torch.no_grad():
-            for key in range(len(self.cases)):
+            for key in range(len(self.validation_cases)):
                 self.logger.reset_cur_val_metrics()
                 val_seed = self.config.reproduce.base_seed + key
-                if self.config.acquisition_variation is not None:
+                if self.config.validation_sampling is not None:
+                    # Fixed validation draws are identical at each epoch.
+                    val_seed = seed_from_parts(
+                        "pcm_fixed_validation",
+                        str(self.config.reproduce.base_seed),
+                        str(key),
+                    )
+                elif self.config.acquisition_variation is not None:
                     val_seed = seed_from_parts(
                         "pcm_supervised_variable_validation",
                         str(self.config.reproduce.base_seed),
@@ -457,7 +509,8 @@ class SupervisedPCMLogger(Logger[SAPMSupervisedPCMConfig], SupervisedPCMTimer):
         optimizer: torch.optim.Optimizer,
         rng: torch.Generator,
         epoch_size: int,
-        cases: list[tuple[float, int]],
+        cases: list[PCMAcquisitionSamplingCase],
+        scale_keys: tuple[int, ...],
         training_state,
     ) -> None:
         super().__init__(
@@ -469,6 +522,7 @@ class SupervisedPCMLogger(Logger[SAPMSupervisedPCMConfig], SupervisedPCMTimer):
         )
         self.epoch_size = epoch_size
         self.cases = cases
+        self.scale_keys = scale_keys
 
         keys = range(len(cases))
         self.last_val_losses = {key: float("inf") for key in keys}
@@ -479,8 +533,7 @@ class SupervisedPCMLogger(Logger[SAPMSupervisedPCMConfig], SupervisedPCMTimer):
         self.best_val_haarpsi = {key: float("-inf") for key in keys}
 
     def case_name(self, key: int) -> str:
-        sampling_ratio, coarse_j = self.cases[key]
-        return f"s{sampling_ratio:.2f}_cJ{coarse_j}"
+        return self.cases[key].label
 
     def log_model_params_if_needed(self, log_by: LogBy) -> None:
         if not self.should_log("train", "params", log_by):
@@ -488,10 +541,15 @@ class SupervisedPCMLogger(Logger[SAPMSupervisedPCMConfig], SupervisedPCMTimer):
         step = self.log_index(log_by)
 
         assert self.model.lambda_map_network is not None
-        for key in range(len(self.cases)):
+        for key in self.scale_keys:
             value = self.model.lambda_map_network.scale_factors_raw[str(key)]
+            label = (
+                self.case_name(key)
+                if len(self.scale_keys) == len(self.cases)
+                else f"shared_key{key}"
+            )
             self.log_metric(
-                f"lambda_map_scale_factor_raw_{self.case_name(key)}_{log_by}",
+                f"lambda_map_scale_factor_raw_{label}_{log_by}",
                 float(value.item()),
                 step=step,
             )

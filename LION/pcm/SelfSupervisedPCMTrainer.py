@@ -21,10 +21,29 @@ class SelfSupervisedPCMTrainer(SupervisedPCMTrainer):
         rng: np.random.Generator,
         device: torch.device | str,
         p_target: float,
+        validation: bool = False,
     ) -> PCMSSDUSplit:
-        sampling_ratio, coarse_j = self.cases[key]
+        case = self.validation_cases[key] if validation else self.cases[key]
+        sampling_ratio = case.draw_ratio(rng)
+        coarse_j = case.coarse_j
+        sampling = (
+            self.config.validation_sampling or self.config.sampling
+            if validation
+            else self.config.sampling
+        )
+        scale_key = (
+            self.validation_scale_keys[key]
+            if validation
+            else (0 if len(self.scale_keys) == 1 else key)
+        )
         acquisition = self.make_acquisition(
-            target_image, key=key, rng=rng, device=device
+            target_image,
+            key=key,
+            rng=rng,
+            device=device,
+            sampling_ratio_override=sampling_ratio,
+            coarse_j_override=coarse_j,
+            sampling_override=sampling,
         )
         return make_pcm_ssdu_split(
             config=self.config,
@@ -32,7 +51,7 @@ class SelfSupervisedPCMTrainer(SupervisedPCMTrainer):
             source_measurement=acquisition.measurement,
             p_target=p_target,
             rng=rng,
-            key=key,
+            key=scale_key,
             sampling_ratio=sampling_ratio,
             coarse_j=coarse_j,
             device=device,
@@ -70,6 +89,7 @@ class SelfSupervisedPCMTrainer(SupervisedPCMTrainer):
             rng=rng,
             device=device,
             p_target=config.ssdu.p_target_val,
+            validation=True,
         )
 
     def forward_step(self, data: PCMSSDUSplit, *, skip_grad_checkpoint: bool):

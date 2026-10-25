@@ -3,10 +3,63 @@
 from __future__ import annotations
 
 from typing import Literal
+from dataclasses import dataclass, replace
 
 import numpy as np
 
-from LION.data_loaders.pcm.data_primitives import PCMSamplingParameter
+from LION.data_loaders.pcm.data_primitives import (
+    PCMRandomRange,
+    PCMSamplingParameter,
+)
+
+
+@dataclass(frozen=True, kw_only=True)
+class PCMAcquisitionSamplingCase:
+    """A fixed or ranged acquisition case, with an honest descriptive label."""
+
+    coarse_j: int
+    sampling_ratio: float | None = None
+    sampling_ratio_range: PCMRandomRange | None = None
+
+    def __post_init__(self) -> None:
+        if (self.sampling_ratio is None) == (self.sampling_ratio_range is None):
+            raise ValueError("Specify either one ratio or one range.")
+
+    def draw_ratio(self, rng: np.random.Generator) -> float:
+        if self.sampling_ratio_range is not None:
+            return self.sampling_ratio_range.draw(rng)
+        assert self.sampling_ratio is not None
+        return self.sampling_ratio
+
+    @property
+    def label(self) -> str:
+        if self.sampling_ratio_range is None:
+            return f"s{self.sampling_ratio:.2f}_cJ{self.coarse_j}"
+        bounds = self.sampling_ratio_range
+        return f"s{bounds.low:.2f}-{bounds.high:.2f}_cJ{self.coarse_j}"
+
+
+def make_acquisition_sampling_cases(
+    *, j_order: int, sampling: PCMSamplingParameter
+) -> list[PCMAcquisitionSamplingCase]:
+    """Reuse the existing fixed-case validation for discrete and ranged sampling."""
+    draw_range = sampling.effective_ratio_range
+    if draw_range is not None:
+        # The smallest possible ratio determines which coarse levels are valid.
+        low_sampling = replace(
+            sampling, sampling_ratios=[draw_range.low], sampling_ratio_range=None
+        )
+        fixed_cases = make_sampling_cases(j_order=j_order, sampling=low_sampling)
+        return [
+            PCMAcquisitionSamplingCase(
+                coarse_j=coarse_j, sampling_ratio_range=draw_range
+            )
+            for _, coarse_j in fixed_cases
+        ]
+    return [
+        PCMAcquisitionSamplingCase(coarse_j=coarse_j, sampling_ratio=ratio)
+        for ratio, coarse_j in make_sampling_cases(j_order=j_order, sampling=sampling)
+    ]
 
 
 def coarse_sampling_ratio(j_order: int, coarse_j: int) -> float:
@@ -24,7 +77,12 @@ def in_order_sampling_ratio(
 def make_sampling_cases(
     *, j_order: int, sampling: PCMSamplingParameter
 ) -> list[tuple[float, int]]:
-    """Generate valid ``(sampling_ratio, coarse_j)`` PCM sampling cases."""
+    """Generate valid ``(sampling_ratio, coarse_j)`` PCM sampling cases.
+
+    For ranges, use ``make_acquisition_sampling_cases`` instead.
+    """
+    if sampling.effective_ratio_range is not None:
+        raise ValueError("A sampling ratio range must be drawn, not treated as fixed.")
     if sampling.coarse_j_values is not None:
         coarse_j_values = list(sampling.coarse_j_values)
     elif sampling.coarse_j_offsets_from_j_order is not None:

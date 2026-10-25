@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import cast
 
@@ -30,6 +30,10 @@ from LION.pcm.noise import (
     PCMAcquisitionVariation,
     PCMNoiseSimulation,
     load_pcm_noise_simulation,
+)
+from LION.pcm_tools.pcm_sampling import (
+    PCMAcquisitionSamplingCase,
+    make_acquisition_sampling_cases,
 )
 from LION.train.self_supervised_train import SelfSupervisedCriterion
 from LION.utils.parameter import LIONParameter
@@ -108,6 +112,8 @@ class SAPMSupervisedPCMConfig(ExperimentConfig):
     model: SAPMModelConfig  # type: ignore[assignment]
     optim: SAPMOptimConfig  # type: ignore[assignment]
     sampling: PCMSamplingParameter = field(default_factory=PCMSamplingParameter)
+    validation_sampling: PCMSamplingParameter | None = None
+    test_sampling: PCMSamplingParameter | None = None
     spgl1: SPGL1Parameter | None = None
     noise: PCMNoiseSimulation | None = None
     uses_normalized_op: bool = True
@@ -136,6 +142,56 @@ class SAPMZeroShotPCMConfig(ExperimentConfig):
 SAPMPCMConfig = (
     SAPMSupervisedPCMConfig | SAPMSelfSupervisedPCMConfig | SAPMZeroShotPCMConfig
 )
+
+
+def make_supervised_pcm_training_cases(
+    config: SAPMSupervisedPCMConfig,
+) -> list[PCMAcquisitionSamplingCase]:
+    """Resolve actual train acquisitions, including legacy interval configs."""
+    j_order = config.data.j_order
+    assert j_order is not None
+    cases = make_acquisition_sampling_cases(j_order=j_order, sampling=config.sampling)
+    variation = config.acquisition_variation
+    if variation is not None and variation.sampling_ratio is not None:
+        # Old experiments stored the sampling range next to noise, with
+        # a nominal 20% case. Preserve their physics but correct their labels.
+        if config.sampling.effective_ratio_range is not None or len(cases) != 1:
+            raise ValueError("Migrate legacy ratio to sampling.sampling_ratio_range.")
+        cases = [
+            replace(
+                case, sampling_ratio=None, sampling_ratio_range=variation.sampling_ratio
+            )
+            for case in cases
+        ]
+    if not cases:
+        raise ValueError("PCM training requires at least one sampling case.")
+    return cases
+
+
+def make_supervised_pcm_validation_cases(
+    config: SAPMSupervisedPCMConfig,
+) -> list[PCMAcquisitionSamplingCase]:
+    """Explicit validation sampling, or the actual training distribution."""
+    if config.validation_sampling is None:
+        return make_supervised_pcm_training_cases(config)
+    j_order = config.data.j_order
+    assert j_order is not None
+    cases = make_acquisition_sampling_cases(
+        j_order=j_order, sampling=config.validation_sampling
+    )
+    if not cases:
+        raise ValueError("PCM validation requires at least one sampling case.")
+    return cases
+
+
+def supervised_pcm_scale_keys(config: SAPMSupervisedPCMConfig) -> tuple[int, ...]:
+    """Range/shared settings have one learned scale, fixed legacy cases keep keys."""
+    cases = make_supervised_pcm_training_cases(config)
+    if config.sampling.share_scale_factor_across_ratios or any(
+        case.sampling_ratio_range is not None for case in cases
+    ):
+        return (0,)
+    return tuple(range(len(cases)))
 
 
 def _load_pcm_sapm_common(path: Path) -> tuple[dict, dict, SamplesParameter, dict]:
@@ -175,6 +231,10 @@ def load_pcm_sapm_supervised_config_from_path(path: Path) -> SAPMSupervisedPCMCo
         acquisition_variation=make_dataclass(
             PCMAcquisitionVariation, data.get("acquisition_variation")
         ),
+        validation_sampling=make_dataclass(
+            PCMSamplingParameter, data.get("validation_sampling")
+        ),
+        test_sampling=make_dataclass(PCMSamplingParameter, data.get("test_sampling")),
         **common,
     )
 
@@ -196,7 +256,16 @@ def load_pcm_sapm_self_supervised_config_from_path(
     data, data_dict, samples, common = _load_pcm_sapm_common(path)
     ssdu = make_dataclass(PCMSSDUConfig, data.get("ssdu", {}))
     return SAPMSelfSupervisedPCMConfig(
-        data=SupervisedPCMDataConfig(**data_dict, samples=samples), ssdu=ssdu, **common
+        data=SupervisedPCMDataConfig(**data_dict, samples=samples),
+        ssdu=ssdu,
+        acquisition_variation=make_dataclass(
+            PCMAcquisitionVariation, data.get("acquisition_variation")
+        ),
+        validation_sampling=make_dataclass(
+            PCMSamplingParameter, data.get("validation_sampling")
+        ),
+        test_sampling=make_dataclass(PCMSamplingParameter, data.get("test_sampling")),
+        **common,
     )
 
 

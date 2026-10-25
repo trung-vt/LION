@@ -154,6 +154,32 @@ class PCMScalingParameter(LIONParameter):
         return data * max(self.r_high - self.r_low, self.scale_eps) + self.r_low  # type: ignore
 
 
+@dataclass(kw_only=True)
+class PCMRandomRange:
+    """Draw a scalar from a uniform or (shifted) log-uniform interval."""
+
+    low: float
+    high: float
+    distribution: Literal["uniform", "log_uniform", "shifted_log_uniform"]
+    shift_fraction: float = 0.001
+
+    def draw(self, rng: np.random.Generator) -> float:
+        if not (0 <= self.low < self.high):
+            raise ValueError("Require 0 <= low < high")
+        if self.distribution == "uniform":
+            return float(rng.uniform(self.low, self.high))
+        if self.distribution == "log_uniform":
+            if self.low == 0:
+                raise ValueError("Log-uniform sampling requires positive lower bound")
+            return float(np.exp(rng.uniform(np.log(self.low), np.log(self.high))))
+        if self.distribution != "shifted_log_uniform":
+            raise ValueError(f"Unknown distribution: {self.distribution!r}")
+        if self.low != 0 or not (0 < self.shift_fraction < 1):
+            raise ValueError("Shifted-log requires low=0, 0<shift_fraction<1")
+        shift = self.high * self.shift_fraction
+        return float(shift * np.expm1(rng.uniform(0, np.log1p(self.high / shift))))
+
+
 # TODO: Put physics config in `Experiment` class?
 @dataclass(kw_only=True)
 class PCMSamplingParameter(LIONParameter):
@@ -167,10 +193,29 @@ class PCMSamplingParameter(LIONParameter):
             Used if `coarse_j_values` is None.
     """
 
-    sampling_ratios: list[float] = field(default_factory=lambda: [0.2])
+    sampling_ratios: list[float] = field(default_factory=list)
+    sampling_ratio_range: PCMRandomRange | None = None
     randomising_scheme: Literal["uniform", "multilevel"] | None = "uniform"
     coarse_j_values: list[int] | None = None
     coarse_j_offsets_from_j_order: list[int] | None = None
+    share_scale_factor_across_ratios: bool = False
+
+    def __post_init__(self) -> None:
+        if isinstance(self.sampling_ratio_range, dict):
+            self.sampling_ratio_range = PCMRandomRange(**self.sampling_ratio_range)
+        if not self.sampling_ratios and self.sampling_ratio_range is None:
+            self.sampling_ratios = [0.2]  # Preserve the original default.
+        if any(not (0 < float(x) <= 1) for x in self.sampling_ratios):
+            raise ValueError("All sampling_ratios must lie in (0,1]")
+        if self.sampling_ratio_range is not None and not (
+            0 < self.sampling_ratio_range.low < self.sampling_ratio_range.high <= 1
+        ):
+            raise ValueError("sampling_ratio_range must lie in (0,1]")
+        # Explicit discrete ratios take precedence over a range.
+
+    @property
+    def effective_ratio_range(self) -> PCMRandomRange | None:
+        return None if self.sampling_ratios else self.sampling_ratio_range
 
 
 @dataclass(kw_only=True)
