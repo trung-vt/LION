@@ -1,0 +1,25 @@
+# Both TRAIN and VALIDATION resample these values every image.
+# Test CLI retains the existing nominal (0.2, coarse J=6, NPL-default) case.
+sampling_ratio:
+  distribution: uniform
+  low: 0.05
+  high: 0.5
+noise:
+  # Physical current before conversion to normalized model measurement units.
+  dark_sigma_raw:
+    distribution: log_uniform
+    low: 1.0e-8
+    high: 1.0e-5
+  bias_sigma:
+    distribution: uniform
+    low: 2.0e-5
+    high: 4.0e-5
+  bias_gradient_sigma:
+    distribution: uniform
+    low: 1.0e-7
+    high: 2.0e-7
+  beam_sigma:
+    distribution: uniform
+    low: 1.0e-4
+    high: 6.0e-4
+  current_to_model_scale: 28571428.57142857
