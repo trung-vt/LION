@@ -1,0 +1,193 @@
+# New runs only. Never change the currently running 1000-epoch job.
+# Shifted-log draws sample sigma in [0, max], using shift=max*0.001.
+# All four original maxima are retained; one shared scale-factor key.
+reproduce:
+  base_seed: 2026
+  random_seed: 1833050840
+  torch_seed: 1780232887
+  numpy_seed: 2276429979
+  rng_seed: 4034612189
+data:
+  categories:
+  - CIGS
+  - Organic
+  - Perovskite
+  - Reference
+  - Silicone
+  samples:
+    total_samples: 1000
+    perm: 5678
+  data_type: image
+  j_order: 8
+  train_perm_range:
+  - 1
+  - 900
+  val_perm_range:
+  - 901
+  - 910
+  test_perm_range:
+  - 911
+  - 1000
+sampling:
+  randomising_scheme: multilevel
+  sampling_ratios:
+  - 0.2
+  coarse_j_values:
+  - 6
+uses_normalized_op: true
+noise:
+  preset: npl_default
+  current_to_model_scale: 28571428.57142857
+  n_repeat_acquisitions: 1
+model:
+  name: TV_supervised_zero_inclusive
+  input_image: cg
+  initial_image: zeros
+  n_iters: 512
+  use_checkpoint: true
+  checkpoint_chunk_size: 16
+  checkpoint_use_reentrant: false
+  pdhg:
+    regularisation: TV
+    primal_stepsize: 0.333
+    dual_stepsize: 0.333
+    initial_scale_factor_raw: 0.1
+    scale_factor_softplus_beta: 1.0
+    lambda_softplus_beta: 1.0
+    fd_pad_mode:
+    - zeros
+    - zeros
+    fd_dim:
+    - -2
+    - -1
+  cnn:
+    uses_simple_cnn: false
+    uses_new_unet: true
+    init_filters: 128
+    n_blocks: 4
+    padding_mode: zeros
+    bias: false
+    dim: 2
+    in_channels: 1
+    out_channels: 1
+    n_convs_per_block: 2
+    kernel_size: 3
+    downsampling_kernel: 2
+  cg:
+    implicit_backward: false
+    tolerance: 0.0001
+    max_iters: 20
+    initial_value: zeros
+spgl1:
+  factor: 1.0e-05
+  iters: 100
+  debias_iters: 10
+  debias_support_tol: 1.0e-05
+  debias_tol: 1.0e-07
+  wavelet_name: db4
+optim:
+  name: Adam
+  learning_rate: 0.0002
+  weight_decay: 1.0e-05
+  scale_factors_raw_learning_rate: 0.0002
+  scale_factors_raw_weight_decay: 1.0e-05
+train:
+  num_epochs: 1000
+  batch_size: 1
+  device: cuda
+log:
+  exp_code: pcm_utv_zero_inclusive
+  run_suffix: full_train_1000ep
+  results_dir: /store/LION/ttv22/pcm/results
+  log_mlflow: false
+  log_csv: true
+  log_train_loss_every_epochs: 1
+  log_train_metrics_every_epochs: -1
+  log_train_params_every_epochs: -1
+  log_val_loss_every_epochs: 1
+  log_val_metrics_every_epochs: 1
+  log_train_loss_every_n_steps: 100
+  log_train_metrics_every_n_steps: -1
+  log_train_params_every_n_steps: -1
+  log_val_loss_every_n_steps: -1
+  log_val_metrics_every_n_steps: -1
+  val_before_start: true
+  final_result:
+    render_reconstruction: true
+    display_interactively: false
+    render_histograms: true
+    image_formats:
+    - png
+    reconstruction:
+      cmap: afmhot
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 1.0
+    absolute_error:
+      cmap: viridis
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 0.5
+    input_image:
+      cmap: afmhot
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 1.0
+    initial_image:
+      cmap: afmhot
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 1.0
+    results_dir_suffix: _render
+    colorbar:
+      figsize:
+      - 2.0
+      - 0.3
+    sapm:
+      map_indices:
+      - 0
+      map_names:
+      - spatial
+      lambda_map_render_configs:
+      - linear:
+        - 0.0
+        - 0.2
+        - magma
+        - .1f
+        - false
+        - true
+  ckpt:
+    every_n_epochs: -1
+    start_epoch: 0
+    end_epoch: null
+    every_n_steps: -1
+    start_step: 0
+    end_step: null
+    log_best: true
+    log_cur: true
+    log_final: true
+    local: true
+    mlflow: false
+acquisition_variation:
+  sampling_ratio:
+    low: 0.05
+    high: 0.5
+    distribution: uniform
+  noise_sigma_ranges:
+    dark_sigma_raw:
+      low: 0.0
+      high: 1.0e-05
+      distribution: shifted_log_uniform
+    bias_sigma:
+      low: 0.0
+      high: 4.0e-05
+      distribution: shifted_log_uniform
+    bias_gradient_sigma:
+      low: 0.0
+      high: 2.0e-07
+      distribution: shifted_log_uniform
+    beam_sigma:
+      low: 0.0
+      high: 0.0006
+      distribution: shifted_log_uniform
+  current_to_model_scale: 28571428.57142857

@@ -26,7 +26,11 @@ from LION.data_loaders.pcm.data_primitives import (
     PCMSamplingParameter,
     SamplesParameter,
 )
-from LION.pcm.noise import PCMNoiseSimulation, load_pcm_noise_simulation
+from LION.pcm.noise import (
+    PCMAcquisitionVariation,
+    PCMNoiseSimulation,
+    load_pcm_noise_simulation,
+)
 from LION.train.self_supervised_train import SelfSupervisedCriterion
 from LION.utils.parameter import LIONParameter
 
@@ -98,6 +102,8 @@ class ZeroShotPCMMethodParameter(LIONParameter):
 class SAPMSupervisedPCMConfig(ExperimentConfig):
     """Full configuration for supervised PCM SAPM training."""
 
+    acquisition_variation: PCMAcquisitionVariation | None = None
+
     data: SupervisedPCMDataConfig  # type: ignore[assignment]
     model: SAPMModelConfig  # type: ignore[assignment]
     optim: SAPMOptimConfig  # type: ignore[assignment]
@@ -163,9 +169,13 @@ def _load_pcm_sapm_common(path: Path) -> tuple[dict, dict, SamplesParameter, dic
 
 def load_pcm_sapm_supervised_config_from_path(path: Path) -> SAPMSupervisedPCMConfig:
     """Load a supervised PCM TV/TGV SAPM config from YAML."""
-    _, data_dict, samples, common = _load_pcm_sapm_common(path)
+    data, data_dict, samples, common = _load_pcm_sapm_common(path)
     return SAPMSupervisedPCMConfig(
-        data=SupervisedPCMDataConfig(**data_dict, samples=samples), **common
+        data=SupervisedPCMDataConfig(**data_dict, samples=samples),
+        acquisition_variation=make_dataclass(
+            PCMAcquisitionVariation, data.get("acquisition_variation")
+        ),
+        **common,
     )
 
 

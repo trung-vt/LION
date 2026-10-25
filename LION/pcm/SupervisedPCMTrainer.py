@@ -23,6 +23,7 @@ from LION.models.AdaptiveTGVPCMNetwork import AdaptiveTGVPCMNetwork
 from LION.models.AdaptiveTVPCMNetwork import AdaptiveTVPCMNetwork
 from LION.models.model_loader import ModelLoader, ModelSetup
 from LION.pcm.pcm_config import SAPMSupervisedPCMConfig
+from LION.pcm.noise import PCMNoiseSimulation
 from LION.pcm.pcm_sapm import PCMForwardData, make_pcm_forward_data
 from LION.pcm.simulation import PCMAcquisition, sample_and_simulate_pcm_acquisition
 from LION.pcm_tools.pcm_sampling import make_sampling_cases
@@ -125,8 +126,12 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         key: int,
         rng: np.random.Generator,
         device: torch.device | str,
+        sampling_ratio_override: float | None = None,
+        noise_override: PCMNoiseSimulation | None = None,
     ) -> PCMAcquisition:
         sampling_ratio, coarse_j = self.cases[key]
+        if sampling_ratio_override is not None:
+            sampling_ratio = sampling_ratio_override
         j_order = self.config.data.j_order
         assert j_order is not None
 
@@ -137,7 +142,7 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
             sampling=self.config.sampling,
             sampling_ratio=sampling_ratio,
             coarse_j=coarse_j,
-            noise=self.config.noise,
+            noise=self.config.noise if noise_override is None else noise_override,
             rng=rng,
             device=device,
         )
@@ -151,8 +156,22 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         device: torch.device | str,
     ) -> PCMForwardData:
         sampling_ratio, coarse_j = self.cases[key]
+        noise = None
+        if self.config.acquisition_variation is not None:
+            if self.config.noise is None:
+                raise ValueError(
+                    "Random noise parameters require a base PCM noise preset"
+                )
+            sampling_ratio, noise = self.config.acquisition_variation.draw(
+                rng, noise=self.config.noise, j_order=self.config.data.j_order
+            )
         acquisition = self.make_acquisition(
-            target_image, key=key, rng=rng, device=device
+            target_image,
+            key=key,
+            rng=rng,
+            device=device,
+            sampling_ratio_override=sampling_ratio,
+            noise_override=noise,
         )
         return make_pcm_forward_data(
             config=self.config,
@@ -221,7 +240,15 @@ class SupervisedPCMTrainer(Trainer[SAPMSupervisedPCMConfig]):
         with torch.no_grad():
             for key in range(len(self.cases)):
                 self.logger.reset_cur_val_metrics()
-                val_rng = np.random.default_rng(self.config.reproduce.base_seed + key)
+                val_seed = self.config.reproduce.base_seed + key
+                if self.config.acquisition_variation is not None:
+                    val_seed = seed_from_parts(
+                        "pcm_supervised_variable_validation",
+                        str(self.config.reproduce.base_seed),
+                        str(self.one_indexed_epoch),
+                        str(key),
+                    )
+                val_rng = np.random.default_rng(val_seed)
 
                 for target_image in tqdm(
                     self.val_loader,
