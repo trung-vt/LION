@@ -25,3 +25,49 @@ MSE over the two end-of-epoch evaluations. Comparisons remain noisy.
 The ranking of 2-epoch runs is a screening heuristic only.
 Use common RNG seeds/splits for paired fair comparisons. The ongoing
 1000-epoch RTX 4090 training run is left untouched.
+
+
+## Verified implementation and reproducibility
+
+The original 2026-10-25 eight-trial screen and first five-epoch trials
+should **NOT** be used for the new noise-range selection. An entry-point
+imported the original installed LION source instead of the isolated worktree;
+the saved *resolved_config.yaml* showed a fixed 20% acquisition and did
+not include the zero-inclusive noise variation. Their scores were therefore
+computed under the wrong acquisition distribution.
+
+The replacement experiments under
+`/store/LION/ttv22/pcm/results/20261025_utv_zero_inclusive_hpo/verified_hpo_20261025`
+use the current LION source through **python -m** and explicit PYTHONPATH
+and verify the resolved configuration before accepting trial scores.
+
+The intended long-training YAML uses one authoritative configuration:
+
+- `sampling.sampling_ratios: []` and `sampling.sampling_ratio_range` for
+  uniformly sampled acquisition ratios in [0.05, 0.5].
+  A nonempty discrete list takes precedence over a range.
+- `validation_sampling` explicitly supplies the independent validation
+  conditions. Acquisitions are seeded identically across epochs, reducing
+  noise in comparisons and giving correct checkpoint names, e.g.
+  `best_val_loss_s0.05-0.50_cJ6.pt`.
+- `test_sampling.sampling_ratios` defines the independent fixed test
+  percentages [0.05, 0.1, 0.2, 0.3, 0.4, 0.5].
+- `acquisition_variation.noise_sigma_ranges` covers the four sigma
+  distributions with a zero-inclusive shifted-log law. It no longer
+  duplicates the sampling ratio.
+- `sampling.share_scale_factor_across_ratios: true` requests one single
+  learned scalar for all ratios.
+- The legacy `acquisition_variation.sampling_ratio` remains loadable for
+  old experiments, but is deprecated and has an explicit compatibility path.
+
+For launches inside a worktree, invoke LION as a module from that worktree,
+not as a file-path script that could import an editable installation elsewhere:
+
+```bash
+cd /path/to/checked-out/LION
+PYTHONPATH="$PWD" python -m scripts.experiments.pcm.train.pcm_supervised_sapm_train --config config/pcm/pcm_utv_zero_inclusive.yaml
+```
+
+No long training should be started from this config until the verified
+hyperparameter finalist results have been compared. The running old RTX
+4090 training job is independent and must not be interrupted.

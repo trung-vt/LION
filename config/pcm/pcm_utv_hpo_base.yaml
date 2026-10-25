@@ -1,6 +1,7 @@
-# Small, reproducible HPO pilot: 10 TRAIN and 2 VAL images per category, 2 epochs.
-# All candidates use the same split, random seeds, sampling/noise variation.
-# All checkpoint exports are OFF for fast, storage-light searches.
+# Actual training ratios and validation ratios are defined independently.
+# Validation acquisitions are fixed across epochs for comparable metrics.
+# One shared learned scale-factor key for every sampling ratio.
+# See docs/pcm/utv_hpo_search_20261025.md.
 reproduce:
   base_seed: 2026
   random_seed: 1833050840
@@ -30,10 +31,14 @@ data:
   - 1000
 sampling:
   randomising_scheme: multilevel
-  sampling_ratios:
-  - 0.2
+  sampling_ratios: []
   coarse_j_values:
   - 6
+  sampling_ratio_range:
+    low: 0.05
+    high: 0.5
+    distribution: uniform
+  share_scale_factor_across_ratios: true
 uses_normalized_op: true
 noise:
   preset: npl_default
@@ -169,10 +174,6 @@ log:
     local: true
     mlflow: false
 acquisition_variation:
-  sampling_ratio:
-    low: 0.05
-    high: 0.5
-    distribution: uniform
   noise_sigma_ranges:
     dark_sigma_raw:
       low: 0.0
@@ -191,3 +192,23 @@ acquisition_variation:
       high: 0.0006
       distribution: shifted_log_uniform
   current_to_model_scale: 28571428.57142857
+validation_sampling:
+  randomising_scheme: multilevel
+  sampling_ratios: []
+  sampling_ratio_range:
+    low: 0.05
+    high: 0.5
+    distribution: uniform
+  coarse_j_values:
+  - 6
+test_sampling:
+  randomising_scheme: multilevel
+  sampling_ratios:
+  - 0.05
+  - 0.1
+  - 0.2
+  - 0.3
+  - 0.4
+  - 0.5
+  coarse_j_values:
+  - 6
