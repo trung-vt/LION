@@ -4,6 +4,7 @@ import csv
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import torch
@@ -47,6 +48,11 @@ class SupervisedPCMTestConfig:
     sampling_ratios: list[float] | None = None
     coarse_j_values: list[int] | None = None
 
+    reuse_single_scale_factor_key: bool = False
+    noise_mode: Literal["configured", "none"] = "configured"
+    output_dir: Path | None = None
+    render_sample_ids: list[int] | None = None
+
     save_reconstruction_tensor: bool = False
     save_lambda_maps_tensor: bool = False
     render_reconstruction: bool = True
@@ -62,6 +68,9 @@ class SupervisedPCMTester:
 
         self.run_dir = args.root / args.experiment
         self.config = load_pcm_sapm_supervised_config(self.run_dir / "config.yaml")
+        if args.noise_mode == "none":
+            self.config.noise = None
+        self.output_dir = args.output_dir or self.run_dir
 
         self.cases = make_test_cases(self.config)  # type: ignore[arg-type]
         self.dataset = PCMSyntheticPNGTorchDataset(self.config.data)
@@ -82,12 +91,26 @@ class SupervisedPCMTester:
         else:
             self.sample_ids = args.sample_ids
 
-        self.selected_cases = [
-            (key, sampling_ratio, coarse_j)
-            for key, (sampling_ratio, coarse_j) in enumerate(self.cases)
-            if (args.sampling_ratios is None or sampling_ratio in args.sampling_ratios)
-            and (args.coarse_j_values is None or coarse_j in args.coarse_j_values)
-        ]
+        if args.reuse_single_scale_factor_key:
+            if len(self.cases) != 1:
+                raise ValueError(
+                    "Reusing one scale-factor key requires one configured case."
+                )
+            self.selected_cases = [
+                (0, ratio, coarse_j)
+                for ratio in (args.sampling_ratios or [self.cases[0][0]])
+                for coarse_j in (args.coarse_j_values or [self.cases[0][1]])
+            ]
+        else:
+            self.selected_cases = [
+                (key, sampling_ratio, coarse_j)
+                for key, (sampling_ratio, coarse_j) in enumerate(self.cases)
+                if (
+                    args.sampling_ratios is None
+                    or sampling_ratio in args.sampling_ratios
+                )
+                and (args.coarse_j_values is None or coarse_j in args.coarse_j_values)
+            ]
 
         if not self.selected_cases:
             raise ValueError("No sampling cases match the requested filters.")
@@ -218,7 +241,7 @@ class SupervisedPCMTester:
     ) -> None:
         """Append one sample result to the condition-level CSV."""
         path = pcm_metrics_path(
-            self.run_dir, sampling_ratio=sampling_ratio, coarse_j=coarse_j
+            self.output_dir, sampling_ratio=sampling_ratio, coarse_j=coarse_j
         )
         path.parent.mkdir(parents=True, exist_ok=True)
         write_header = not path.exists()
@@ -289,23 +312,27 @@ class SupervisedPCMTester:
                         metrics=metrics,
                     )
 
-                    paths = pcm_result_paths(
-                        self.run_dir,
-                        sampling_ratio=sampling_ratio,
-                        coarse_j=coarse_j,
-                        epoch=epoch,
-                        step=step,
-                        category=category,
-                        sample_id=sample_id,
-                    )
-                    writer.write(
-                        paths,
-                        recon=recon,
-                        target=target,
-                        lambdas=lambda_maps,
-                        model_input=model_input,
-                        save_reconstruction_tensor=self.args.save_reconstruction_tensor,
-                    )
+                    if (
+                        self.args.render_sample_ids is None
+                        or sample_id in self.args.render_sample_ids
+                    ):
+                        paths = pcm_result_paths(
+                            self.output_dir,
+                            sampling_ratio=sampling_ratio,
+                            coarse_j=coarse_j,
+                            epoch=epoch,
+                            step=step,
+                            category=category,
+                            sample_id=sample_id,
+                        )
+                        writer.write(
+                            paths,
+                            recon=recon,
+                            target=target,
+                            lambdas=lambda_maps,
+                            model_input=model_input,
+                            save_reconstruction_tensor=self.args.save_reconstruction_tensor,
+                        )
 
     def run(self) -> None:
         for spec in self.args.epochs:
