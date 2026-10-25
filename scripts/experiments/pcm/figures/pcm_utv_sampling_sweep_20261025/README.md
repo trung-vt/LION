@@ -58,3 +58,29 @@ Full arrays and the immutable copied checkpoint remain under
 Training remains in its original tmux session. No library source changes,
 checkpoint commits, or changes to the working training branch are part of
 this results publication.
+
+## Changing plot settings without rerunning GPU reconstructions
+
+The report's figure settings are now independent of the training config:
+
+- Plot-only YAML: [config/pcm/pcm_utv_ratio_sweep_render.yaml](../../../../../config/pcm/pcm_utv_ratio_sweep_render.yaml)
+- Re-rendering script: [scripts/experiments/pcm/utv_ratio_sweep_20261025/report.py](../../utv_ratio_sweep_20261025/report.py)
+- Exact settings used to render this publication: [render_config_used.yaml](render_config_used.yaml)
+
+The YAML uses LION's existing log.final_result structure. In particular,
+the reconstruction fields cmap, cmap_max, vmin, vmax, and cbar_tick_format
+control the **ground truth and reconstructed PNGs, PDF panels, and PDF
+colourbars together**. Current defaults are afmhot and common limits [0, 1].
+Changing the display scale does not recalculate any reconstruction or metric.
+
+On tuni, the evaluation arrays are stored outside GitHub in
+/store/LION/ttv22/pcm/results/20261025_utv_ratio_sweep_snapshot/arrays.
+With those arrays present, run:
+
+    python scripts/experiments/pcm/utv_ratio_sweep_20261025/report.py \
+      --render-config config/pcm/pcm_utv_ratio_sweep_render.yaml \
+      --output-dir /store/LION/ttv22/pcm/results/20261025_utv_ratio_sweep_snapshot/rendered_configurable
+
+This recreates the PDF and the 119 individual PNGs from saved arrays;
+the evaluation GPUs and checkpoint are not needed. Choose another
+output directory if you want to preserve earlier render variants.

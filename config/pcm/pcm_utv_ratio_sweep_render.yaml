@@ -1,0 +1,25 @@
+# Plotting-only override; same nesting/schema as the training YAML's log.final_result.
+# Does NOT change trained weights, measurements, reconstruction, or metrics.
+# Edit these values and rerun the report script to regenerate both PDF and PNG.
+log:
+  final_result:
+    image_formats: [png]
+    render_histograms: false
+    colorbar: null  # The PDF provides one shared bar per comparison page.
+    reconstruction:
+      cmap: afmhot
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 1.0
+      cbar_tick_format: ".2f"
+    # Future plots can reuse the usual LION fields, if needed:
+    absolute_error:
+      cmap: viridis
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 0.5
+    input_image:
+      cmap: afmhot
+      cmap_max: 1.0
+      vmin: 0.0
+      vmax: 1.0
