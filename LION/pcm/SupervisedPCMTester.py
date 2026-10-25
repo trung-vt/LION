@@ -57,6 +57,8 @@ class SupervisedPCMTestConfig:
     save_lambda_maps_tensor: bool = False
     render_reconstruction: bool = True
     render_lambda_maps: bool = True
+    render_zero_filled: bool = False
+    render_in_order_zero_filled: bool = False
 
 
 class SupervisedPCMTester:
@@ -146,7 +148,9 @@ class SupervisedPCMTester:
         sample_id: int,
         sampling_ratio: float,
         coarse_j: int,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, ModelInput]:
+    ) -> tuple[
+        torch.Tensor, torch.Tensor, torch.Tensor, ModelInput, dict[str, torch.Tensor]
+    ]:
         """Simulate one PCM measurement and reconstruct it."""
         target = self.get_target(category=category, sample_id=sample_id)
         target_bchw = target.unsqueeze(0).unsqueeze(0).to(self.device)
@@ -190,12 +194,50 @@ class SupervisedPCMTester:
             skip_grad_checkpoint=True,
         )
 
+        baselines: dict[str, torch.Tensor] = {}
+        if self.args.render_zero_filled:
+            # Use exactly the same measured data and pattern as the U-TV run.
+            baselines["zero_filled_multilevel"] = (
+                acquisition.op.pseudo_inv(acquisition.measurement).detach().cpu()
+            )
+
+        if self.args.render_in_order_zero_filled:
+            # Separate acquisition: same sampling fraction and noise preset,
+            # but the first m coarse-to-fine patterns instead of a random mask.
+            in_order_seed = seed_from_parts(
+                "pcm_in_order_zero_filled",
+                str(self.config.reproduce.base_seed),
+                category,
+                str(sample_id),
+                str(sampling_ratio),
+                str(coarse_j),
+            )
+            in_order_acquisition = sample_and_simulate_pcm_acquisition(
+                target_bchw,
+                j_order=j_order,
+                sampling=dataclasses.replace(
+                    self.config.sampling, randomising_scheme=None
+                ),
+                sampling_ratio=sampling_ratio,
+                coarse_j=coarse_j,
+                noise=self.config.noise,
+                rng=np.random.default_rng(in_order_seed),
+                device=self.device,
+                seed=in_order_seed,
+            )
+            baselines["zero_filled_in_order"] = (
+                in_order_acquisition.op.pseudo_inv(in_order_acquisition.measurement)
+                .detach()
+                .cpu()
+            )
+
         assert result.extra_output is not None
         return (
             target_bchw.detach().cpu(),
             result.reconstruction.detach().cpu(),
             result.extra_output.detach().cpu(),
             data.model_input,
+            baselines,
         )
 
     def result_output_config(self):
@@ -238,11 +280,14 @@ class SupervisedPCMTester:
         sampling_ratio: float,
         coarse_j: int,
         metrics: dict[str, float],
+        method: str | None = None,
     ) -> None:
         """Append one sample result to the condition-level CSV."""
         path = pcm_metrics_path(
             self.output_dir, sampling_ratio=sampling_ratio, coarse_j=coarse_j
         )
+        if method is not None:
+            path = path.with_name("baseline_metrics.csv")
         path.parent.mkdir(parents=True, exist_ok=True)
         write_header = not path.exists()
 
@@ -259,6 +304,8 @@ class SupervisedPCMTester:
             "haarpsi",
             "pearson_corr",
         ]
+        if method is not None:
+            fieldnames.insert(0, "method")
 
         with path.open("a", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -266,6 +313,7 @@ class SupervisedPCMTester:
                 writer.writeheader()
             writer.writerow(
                 {
+                    **({"method": method} if method is not None else {}),
                     "epoch": epoch,
                     "step": step,
                     "category": category,
@@ -288,7 +336,13 @@ class SupervisedPCMTester:
                     desc=f"epoch={epoch} step={step} {category} s={sampling_ratio:.2f} cJ={coarse_j}",
                     dynamic_ncols=True,
                 ):
-                    target, recon, lambda_maps, model_input = self.reconstruct(
+                    (
+                        target,
+                        recon,
+                        lambda_maps,
+                        model_input,
+                        baselines,
+                    ) = self.reconstruct(
                         model,
                         key=key,
                         category=category,
@@ -333,6 +387,32 @@ class SupervisedPCMTester:
                             model_input=model_input,
                             save_reconstruction_tensor=self.args.save_reconstruction_tensor,
                         )
+
+                        spec = writer.config.reconstruction
+                        for method, image in baselines.items():
+                            baseline_metrics = compute_metrics(
+                                recon=image,
+                                target=target,
+                                data_range=float((target.max() - target.min()).item()),
+                            )
+                            self.append_metrics(
+                                epoch=epoch,
+                                step=step,
+                                category=category,
+                                sample_id=sample_id,
+                                sampling_ratio=sampling_ratio,
+                                coarse_j=coarse_j,
+                                metrics=baseline_metrics,
+                                method=method,
+                            )
+                            assert spec is not None
+                            writer.renderer.render_scalar_image(
+                                values=image,
+                                out_dir=paths.images_dir,
+                                filename_stem=method,
+                                label=method,
+                                spec=spec,
+                            )
 
     def run(self) -> None:
         for spec in self.args.epochs:
