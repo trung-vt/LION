@@ -1,0 +1,403 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=21mm]{geometry}
+
+\usepackage{graphicx,booktabs,longtable,amsmath,amssymb}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\setlength{\parskip}{5pt}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\title{Experiment 1 on 28-10-2026\\[0.35em]\large learned post-training calibration scaling of spatial regularisation maps\\[0.5em]\normalsize Full technical report: four-image sweep, 50-image Approach A training, final CIGS evaluation}
+
+\author{Reproducible PCM U-TV experimental report}
+
+\date{28 October 2026 13:37 UTC}
+
+\maketitle
+
+\tableofcontents
+
+\clearpage
+
+\section{Executive summary: the two experiments and their distinct roles}
+
+The first stage is an exploratory sweep of the frozen spatial U-TV map on four synthetic CIGS images. It is executed BEFORE training the scale head, to quantify the potential PSNR gains and the line-contrast trade-off. On its three exploratory noise seeds per image, the posthoc discrete-scale oracle gains 4.004 dB over c=1; the calibration-chosen pooled constant gains 4.004 dB. The residual oracle opportunity beyond that global constant is 0.000 dB. These figures are non-deployable posthoc upper bounds where applicable.
+
+In Stage II we selected exactly 50 OTHER training images (10 from each of five PCM categories), plus 25 image-disjoint validation images (5 per category), without using the four CIGS samples for head learning or validation. The supervised labels were built from complete offline quality-vs-scale curves on a fixed 19-point logarithmic grid. We selected a small Approach A predictor by validation PSNR, then evaluated it on the four CIGS images at three NEW predeclared noise seeds. The selected model was near\_optimal\_set\_regression. Its mean test PSNR gain over c=1 was 3.964 dB, its gain over the best validation-chosen constant was -0.018 dB, and the remaining posthoc test oracle opportunity beyond the constant was 0.000 dB.
+
+\section{Scientific aim and what is actually learned}
+
+For noisy PCM measurements $\boldsymbol y=A\boldsymbol x^\star+\boldsymbol\varepsilon$, the pretrained U-TV model predicts a fixed positive spatial regularisation map $\boldsymbol\Lambda_\theta(\boldsymbol y)$. A *scalar* correction is introduced without altering the map-network parameters: \[\boldsymbol\Lambda_{\rm eff}(\boldsymbol y)=c_\phi(\boldsymbol y)\boldsymbol\Lambda_\theta(\boldsymbol y),\qquad \hat{\boldsymbol x}=\operatorname{PDHG}_K(\boldsymbol y,\boldsymbol\Lambda_{\rm eff}(\boldsymbol y)).\] Only $c_\phi$ is learned during Stage II; no gradient passes through PDHG during head training. For a fixed predicted nonnegative weight map the TV objective is convex in the reconstruction, although a finite-depth PDHG output need not be its exact minimiser.
+
+\section{Stage I: exploratory four-image scale sweep (before training)}
+
+The four synthetic CIGS image IDs are 0674, 0985, 0917 and 0864. Each has two exploratory calibration and three exploratory held-out noise realisations; their full images and line annotations were inspected before running the sweep. The same original measured data and predicted map are used for each scale within a datum. All Stage I scales, refinement centres and posthoc oracles are diagnostic; none of the resulting four-image labels were used for training or selecting the Stage II scale head.
+
+\begin{center}
+\small
+\begin{tabular}{lr}
+\toprule
+Stage I, dB & Average PSNR gain vs c=1\\
+\midrule
+Pooled calibration constant & 4.004\\
+Leave-one-image-out fixed constant & 4.004\\
+Image-specific calibration & 4.003\\
+Posthoc per-datum oracle & 4.004\\
+Oracle - pooled constant & 0.000\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/stage1_quality_vs_scale.png}}
+\caption{Stage I: PSNR and line contrast versus multiplier. Every curve is based on the four-image exploratory run and common measurement noise seeds per image. A scale yielding a higher global PSNR can remove narrow dark lines. The plots do not imply good transfer to unseen image structures.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/stage1_quality_line_tradeoff.png}}
+\caption{Stage I: global image quality versus local line preservation. Every point is a scalar multiplier of a fixed learned parameter map, with calibration-only measurements used for selection. The diagram makes the PSNR-versus-contrast conflict visible.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/stage1_oracle_gap.png}}
+\caption{Stage I: how much can per-datum oracle tuning add?. Only the extra gain of the posthoc oracle over one fixed calibration-chosen multiplier motivates training a per-datum scale predictor. An oracle determined using the unknown ground truth is not deployable.}
+\end{figure}
+\clearpage
+
+\section{Stage II: input-data partition, noise realisations and targets}
+
+We use exactly 10 OTHER images for training from each category CIGS, Organic, Perovskite, Reference and Silicon; total 50 training image identities. The pretrained U-TV mapping is frozen and its original train/validation split is respected. Additionally, 5 independent validation image identities per category (25 total) were reserved exclusively for choosing the scalar-head model and the global-constant baseline. The final evaluation uses the four CIGS identities from Stage I but NEW noise seeds 5101/5102/5103, excluded entirely from head training and validation.
+
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\toprule
+Category & Train images & Validation images\\
+\midrule
+CIGS & 10 & 5\\
+Organic & 10 & 5\\
+Perovskite & 10 & 5\\
+Reference & 10 & 5\\
+Silicon & 10 & 5\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The 50 train image identities each provide 3 noisy data: 150 supervised oracle-curve labels. The 25 validation images supply 50 separate noisy examples. Final test data count is 12. Repeated noise realisations on the same image are NOT independent image structures.
+
+All target scales belong to a 19-point logarithmic grid, from $2^{-3}$ to $2^6$ in half-octave increments. For each noisy datum we retain the entire PSNR-versus-scale curve, the best sampled scale, the discrete near-optimal set within 0.1 dB of best, and a quality-weighted soft target with temperature 0.15 dB. These oracle labels are created with training/validation ground truth; the predictor sees only measurement, CG image-input and frozen-map summary features. Image IDs, ground-truth contrasts and true noise norms are EXCLUDED from the head input.
+
+\section{Three supervised Approach A head losses and selection}
+
+Each head is a small MLP applied to the same standardised input features. Let $z=\log_2 c$, and $z_i^\star$ be the offline best sampled scale. The baseline head minimises $\sum_i(z_\phi(\boldsymbol y_i)-z_i^\star)^2$. The near-optimal-set head minimises the squared distance from $z_\phi$ to the discrete set of scales within 0.1 dB of the oracle PSNR. The soft-classification head predicts weights over scales by matching $p^\star_{ij}\propto\exp((Q_{ij}-\max_\ell Q_{i\ell})/T)$ with $T=0.15$ dB. All head models are trained on CPU without differentiating through PDHG. Continuous predictions are quantised to the nearest common discrete grid scale for fair cached-solver evaluation.
+
+The chosen model is determined by the highest VALIDATION reconstructed PSNR (not the smallest squared error on oracle log-scales). No final-test PSNR or Stage I test-oracle values were used to select it. Two constant baselines are frozen: one chosen across all five validation categories and one chosen solely on the independent CIGS validation images.
+
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\toprule
+Head / baseline & Selected epoch & Validation PSNR dB\\
+\midrule
+near optimal set regression & 70 & 32.316\\
+hard log2 regression & 73 & 32.314\\
+soft classification & 37 & 32.307\\
+Global constant c=8.000 & -- & 32.119\\
+CIGS-val constant c=8.000 & -- & 32.129\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/head_validation_psnr.png}}
+\caption{Validation reconstruction PSNR during offline head training. The validation images are separate from the 50 training identities and the four CIGS final-test images. Model selection and early stopping used only these validation scores, with no PDHG backpropagation.}
+\end{figure}
+\clearpage
+
+\section{Final test: PSNR gains, quality and line survival}
+
+The four CIGS image identities are used as a small final test for the scalar head, with NEW noise seeds 5101, 5102 and 5103 for every image. Both validation constants and the chosen model were frozen first. The per-datum best scale is computed afterwards as a non-deployable test oracle. Metrics are averaged within each image across noise seeds and then equally over the four images.
+
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Image & c=1 & All-val & CIGS-val & Learned & Oracle\\
+\midrule
+CIGS 0674 & 28.537 & 32.786 & 32.786 & 32.786 & 32.786\\
+CIGS 0985 & 28.047 & 31.863 & 31.863 & 31.863 & 31.863\\
+CIGS 0917 & 28.078 & 32.115 & 32.115 & 32.115 & 32.115\\
+CIGS 0864 & 28.330 & 32.152 & 32.152 & 32.082 & 32.152\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabular}{lr}
+\toprule
+Summary of four image means & PSNR gain dB\\
+\midrule
+Learned versus c=1 & 3.964\\
+Learned versus global c & -0.018\\
+Learned versus CIGS-validation c & -0.018\\
+Oracle versus global c & 0.000\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/final_test_global_and_line.png}}
+\caption{Final-test reconstruction fidelity and thin-line contrast. The fitted scale head is compared with original U-TV c=1, two all-category/CIGS-only validation constants and the per-datum posthoc oracle. Improvements in global PSNR must NOT be described as successful crack recovery unless line contrast and continuity also improve.}
+\end{figure}
+\clearpage
+
+\section{Complete visual atlas of the twelve final-test reconstructions}
+
+Each test image and each final noise realisation has two panels: the full 256-by-256 reconstruction and an enlarged region centred on the documented thin line. All methods within a figure use the SAME measurements and colour range. The source float32 reconstructions are preserved and the PDF panels are display-only.
+
+\subsection{CIGS 0674}
+
+Across the fresh test noise seeds: baseline PSNR 28.537 dB, global c PSNR 32.786 dB, Approach A PSNR 32.786 dB, posthoc oracle PSNR 32.786 dB. The learned head adds 0.000 dB over the global constant on this image. Line reconstruction quality must be inspected independently.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0674_noise5101_full.png}}
+\caption{CIGS 0674, final noise seed 5101: whole image. Fixed fresh noise seed 5101: c=1 gives 28.526 dB; the learned scale 8.0000 gives 32.802 dB, and test oracle 8.0000 gives 32.802 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0674_noise5101_roi.png}}
+\caption{CIGS 0674, final noise seed 5101: thin-line crop. Fixed fresh noise seed 5101: c=1 gives 28.526 dB; the learned scale 8.0000 gives 32.802 dB, and test oracle 8.0000 gives 32.802 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.015; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0674_noise5102_full.png}}
+\caption{CIGS 0674, final noise seed 5102: whole image. Fixed fresh noise seed 5102: c=1 gives 28.492 dB; the learned scale 8.0000 gives 32.848 dB, and test oracle 8.0000 gives 32.848 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0674_noise5102_roi.png}}
+\caption{CIGS 0674, final noise seed 5102: thin-line crop. Fixed fresh noise seed 5102: c=1 gives 28.492 dB; the learned scale 8.0000 gives 32.848 dB, and test oracle 8.0000 gives 32.848 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.056; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0674_noise5103_full.png}}
+\caption{CIGS 0674, final noise seed 5103: whole image. Fixed fresh noise seed 5103: c=1 gives 28.594 dB; the learned scale 8.0000 gives 32.708 dB, and test oracle 8.0000 gives 32.708 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0674_noise5103_roi.png}}
+\caption{CIGS 0674, final noise seed 5103: thin-line crop. Fixed fresh noise seed 5103: c=1 gives 28.594 dB; the learned scale 8.0000 gives 32.708 dB, and test oracle 8.0000 gives 32.708 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.059; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\subsection{CIGS 0985}
+
+Across the fresh test noise seeds: baseline PSNR 28.047 dB, global c PSNR 31.863 dB, Approach A PSNR 31.863 dB, posthoc oracle PSNR 31.863 dB. The learned head adds 0.000 dB over the global constant on this image. Line reconstruction quality must be inspected independently.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0985_noise5101_full.png}}
+\caption{CIGS 0985, final noise seed 5101: whole image. Fixed fresh noise seed 5101: c=1 gives 28.120 dB; the learned scale 8.0000 gives 31.890 dB, and test oracle 8.0000 gives 31.890 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0985_noise5101_roi.png}}
+\caption{CIGS 0985, final noise seed 5101: thin-line crop. Fixed fresh noise seed 5101: c=1 gives 28.120 dB; the learned scale 8.0000 gives 31.890 dB, and test oracle 8.0000 gives 31.890 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.787; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0985_noise5102_full.png}}
+\caption{CIGS 0985, final noise seed 5102: whole image. Fixed fresh noise seed 5102: c=1 gives 28.140 dB; the learned scale 8.0000 gives 31.945 dB, and test oracle 8.0000 gives 31.945 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0985_noise5102_roi.png}}
+\caption{CIGS 0985, final noise seed 5102: thin-line crop. Fixed fresh noise seed 5102: c=1 gives 28.140 dB; the learned scale 8.0000 gives 31.945 dB, and test oracle 8.0000 gives 31.945 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.830; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0985_noise5103_full.png}}
+\caption{CIGS 0985, final noise seed 5103: whole image. Fixed fresh noise seed 5103: c=1 gives 27.881 dB; the learned scale 8.0000 gives 31.755 dB, and test oracle 8.0000 gives 31.755 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0985_noise5103_roi.png}}
+\caption{CIGS 0985, final noise seed 5103: thin-line crop. Fixed fresh noise seed 5103: c=1 gives 27.881 dB; the learned scale 8.0000 gives 31.755 dB, and test oracle 8.0000 gives 31.755 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.887; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\subsection{CIGS 0917}
+
+Across the fresh test noise seeds: baseline PSNR 28.078 dB, global c PSNR 32.115 dB, Approach A PSNR 32.115 dB, posthoc oracle PSNR 32.115 dB. The learned head adds 0.000 dB over the global constant on this image. Line reconstruction quality must be inspected independently.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0917_noise5101_full.png}}
+\caption{CIGS 0917, final noise seed 5101: whole image. Fixed fresh noise seed 5101: c=1 gives 28.180 dB; the learned scale 8.0000 gives 32.193 dB, and test oracle 8.0000 gives 32.193 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0917_noise5101_roi.png}}
+\caption{CIGS 0917, final noise seed 5101: thin-line crop. Fixed fresh noise seed 5101: c=1 gives 28.180 dB; the learned scale 8.0000 gives 32.193 dB, and test oracle 8.0000 gives 32.193 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.845; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0917_noise5102_full.png}}
+\caption{CIGS 0917, final noise seed 5102: whole image. Fixed fresh noise seed 5102: c=1 gives 28.020 dB; the learned scale 8.0000 gives 32.201 dB, and test oracle 8.0000 gives 32.201 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0917_noise5102_roi.png}}
+\caption{CIGS 0917, final noise seed 5102: thin-line crop. Fixed fresh noise seed 5102: c=1 gives 28.020 dB; the learned scale 8.0000 gives 32.201 dB, and test oracle 8.0000 gives 32.201 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.872; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0917_noise5103_full.png}}
+\caption{CIGS 0917, final noise seed 5103: whole image. Fixed fresh noise seed 5103: c=1 gives 28.034 dB; the learned scale 8.0000 gives 31.951 dB, and test oracle 8.0000 gives 31.951 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0917_noise5103_roi.png}}
+\caption{CIGS 0917, final noise seed 5103: thin-line crop. Fixed fresh noise seed 5103: c=1 gives 28.034 dB; the learned scale 8.0000 gives 31.951 dB, and test oracle 8.0000 gives 31.951 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.804; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\subsection{CIGS 0864}
+
+Across the fresh test noise seeds: baseline PSNR 28.330 dB, global c PSNR 32.152 dB, Approach A PSNR 32.082 dB, posthoc oracle PSNR 32.152 dB. The learned head adds -0.070 dB over the global constant on this image. Line reconstruction quality must be inspected independently.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0864_noise5101_full.png}}
+\caption{CIGS 0864, final noise seed 5101: whole image. Fixed fresh noise seed 5101: c=1 gives 28.336 dB; the learned scale 8.0000 gives 32.147 dB, and test oracle 8.0000 gives 32.147 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0864_noise5101_roi.png}}
+\caption{CIGS 0864, final noise seed 5101: thin-line crop. Fixed fresh noise seed 5101: c=1 gives 28.336 dB; the learned scale 8.0000 gives 32.147 dB, and test oracle 8.0000 gives 32.147 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.840; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0864_noise5102_full.png}}
+\caption{CIGS 0864, final noise seed 5102: whole image. Fixed fresh noise seed 5102: c=1 gives 28.248 dB; the learned scale 11.3137 gives 31.905 dB, and test oracle 8.0000 gives 32.116 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0864_noise5102_roi.png}}
+\caption{CIGS 0864, final noise seed 5102: thin-line crop. Fixed fresh noise seed 5102: c=1 gives 28.248 dB; the learned scale 11.3137 gives 31.905 dB, and test oracle 8.0000 gives 32.116 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.861; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0864_noise5103_full.png}}
+\caption{CIGS 0864, final noise seed 5103: whole image. Fixed fresh noise seed 5103: c=1 gives 28.407 dB; the learned scale 8.0000 gives 32.194 dB, and test oracle 8.0000 gives 32.194 dB. The oracle uses GT AFTER the model was selected and is not available at deployment.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/CIGS_0864_noise5103_roi.png}}
+\caption{CIGS 0864, final noise seed 5103: thin-line crop. Fixed fresh noise seed 5103: c=1 gives 28.407 dB; the learned scale 8.0000 gives 32.194 dB, and test oracle 8.0000 gives 32.194 dB. The oracle uses GT AFTER the model was selected and is not available at deployment. Learned-scale signed retained line contrast is 0.951; a near-zero value indicates suppression, regardless of good global PSNR.}
+\end{figure}
+\clearpage
+
+\section{Limitations and scientific interpretation}
+
+\begin{enumerate}
+
+\item The 4 images were already examined during exploratory Stage I, so Stage II is not fully blind
+
+\item CIGS 0674 may be from the old map-network training partition; excluded from scale head but pipeline-level unseen-image claim is invalid
+
+\item A 50-image dataset is a pilot, not an established generalisation benchmark
+
+\item Global quality-optimal scaling may destroy material cracks
+
+\item Oracle scale labels are computed on a finite 19-point grid. Their best value depends on GT, and per-datum predictability is not guaranteed. A wide near-optimal plateau can make hard-label regression unnecessarily unstable.
+
+\item The scale correction multiplies the full map and cannot alter its spatial shape. Stronger global TV may improve PSNR while deleting a one-pixel defect.
+
+\end{enumerate}
+
+\section{Reproducibility and numerical integrity}
+
+The scripts refuse incomplete Stage I/II data, fail if source images change, freeze image partition and pretrained U-TV checkpoint hashes, and select the scale predictor on validation data before evaluating the new test noise seeds. The 50 training images come from original training IDs 0000--0799 per category; the 25 validation images from 0800--0899 per category. All four CIGS test IDs are excluded from both.
+
+\begin{center}
+\small
+\begin{tabular}{lr}
+\toprule
+Artifact & Recorded value\\
+\midrule
+Experiment & Experiment 1 on 28-10-2026\\
+Map model checkpoint & best\_val\_loss\_s0.20\_cJ6.pt\\
+Map checkpoint SHA256 & 4da3f177ece6dc6f23979a1d...\\
+Scale-head SHA256 & 780c658259aee1d1d5b4b7a3...\\
+LION Git revision & ce5dcb4780780d9779eee6c4...\\
+Training/validation sample manifest SHA256 & 8732a038051159a74d2ef8a2...\\
+Stage I run root & /store/LION/ttv22/pcm/results/experiment\_1\_on\_28-10-2026/old\\
+Stage II run root & /store/LION/ttv22/pcm/results/experiment\_1\_on\_28-10-2026/approach\_a/old\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Conclusions and suggested follow-up}
+
+The central experimental question is whether a per-datum scale predictor captures a meaningful additional improvement beyond the BEST single validation-calibrated multiplier. On these four CIGS images it achieved -0.018 dB of extra mean PSNR compared with the global scale; the oracle gap of 0.000 dB is the posthoc headroom, not a guaranteed achievable gain. If the learned gain is small, prefer a single calibrated constant. If the global metric gain is large but thin lines disappear, scalar calibration alone is not sufficient for defect imaging without independently validated crack masks; investigate line-aware objectives or directional regularisation. A future genuinely blinded test should use NEW image identities never used to design the experiment.
+
+\end{document}

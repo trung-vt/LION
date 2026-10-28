@@ -1,0 +1,403 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=23mm]{geometry}
+
+\usepackage{graphicx,booktabs,longtable,amsmath,amssymb}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\setlength{\parskip}{5pt}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\title{Experiment 1 on 28-10-2026\\[0.35em]\large learned post-training calibration scaling of spatial regularisation maps\\[0.5em]\normalsize Stage I: exploratory four-image scale sweep}
+
+\author{Reproducible experimental report}
+
+\date{28 October 2026, 13:11 UTC}
+
+\maketitle
+
+\tableofcontents
+
+\clearpage
+
+\section{Executive summary}
+
+This report analyses a four-image CIGS PCM experiment with 12 held-out noisy reconstruction data (three noise realisations per image). The four ground-truth images, not the 12 noise realisations, are the relevant units of structural diversity.
+
+Relative to using the original learned parameter map at $c=1$, the test-set posthoc per-datum oracle gain is 4.004 dB in mean PSNR; a single calibration-selected multiplier gains 4.004 dB. The remaining test oracle versus fixed multiplier opportunity is 0.000 dB. These are descriptive findings on four images only; the oracle is not a deployable predictor.
+
+Stage I deliberately does NOT train a scaling head. Its role is to measure whether the potential improvement, label stability, near-optimal scale sets and global-quality/line-preservation trade-off justify Stage II: Approach A with 50 separate training images across five categories, 25 validation images, and a final test on the same four CIGS structures but new noise seeds.
+
+\section{Experiment design and reproducibility}
+
+Given noisy data $\boldsymbol y=A\boldsymbol x^\star+\boldsymbol\varepsilon$ and one predicted learned TV map $\boldsymbol\Lambda_\theta(\boldsymbol y)$, the only varied parameter is a positive scalar $c$:\[\boldsymbol x_c=\operatorname{PDHG}_K(\boldsymbol y,c\boldsymbol\Lambda_\theta(\boldsymbol y)).\] The map is predicted \emph{once} for each datum and frozen across the entire $c$ sweep. There are no outer Bregman iterations. Finite-step PDHG is not an exact optimisation solution by default.
+
+\begin{center}
+\small
+\begin{tabular}{lr}
+\toprule
+Property & Recorded configuration\\
+\midrule
+Experiment & Experiment 1; fixed-map scaling only\\
+Images & CIGS 0674, CIGS 0985, CIGS 0917, CIGS 0864\\
+Sampling & 20 percent normalised Hadamard; coarse J=6\\
+Noise & LION NPL simulation; 2 calibration seeds + 3 held-out seeds\\
+Coarse multipliers & 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64\\
+Refinement & Logarithmic factors around calibration optima; from calibration seeds only\\
+Model & old\\
+Actual PDHG depth & 256\\
+Frozen checkpoint & best\_val\_loss\_s0.20\_cJ6.pt\\
+Checkpoint SHA256 & 4da3f177ece6dc6f2397...\\
+LION Git revision & ce5dcb4780780d9779...\\
+No. of coarse reconstructions & 200\\
+No. of refined reconstructions & 140\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Training/evaluation separation: Stage I is PRETRAINING exploratory analysis. Calibration seed ground truths can select scales; the three designated test noise seeds never select the pooled, per-image, or leave-one-image-out scale. Posthoc test oracle values are plotted ONLY as upper bounds. The per-image calibrated selector is an image-specific oracle requiring the same image in calibration; it is not a blind per-datum scaling system.
+
+\section{How Approach A target quality is assessed}
+
+For noisy datum $i,s$ and discrete tested scale set $\mathcal S$, define $Q_{is}(c)=\operatorname{PSNR}(\boldsymbol x_{is,c},\boldsymbol x_i^\star)$, $Q_{is}^\star=\max_{c\in\mathcal S} Q_{is}(c)$, and\[c_{is}^\star\in\arg\max_{c\in\mathcal S}Q_{is}(c).\]
+
+A hard $c^\star$ is unstable when several scales give nearly identical PSNR. We also retain the complete sampled near-optimal \emph{set}\[\mathcal C_{is,\epsilon}=\{c\in\mathcal S:Q_{is}(c)\ge Q_{is}^\star-\epsilon\},\qquad \epsilon=0.1\ \mathrm{dB},\]which may be disconnected. The plot of its minimum-to-maximum span is a visual hull, not a claim that every intervening continuous scale is acceptable.
+
+For future offline Approach A training, the soft label over measured scales is\[p_{is}(c_j)=\frac{\exp([Q_{is}(c_j)-Q_{is}^\star]/T)}{\sum_{\ell}\exp([Q_{is}(c_\ell)-Q_{is}^\star]/T)},\qquad T=0.15\ \mathrm{dB}.\]Prediction by squared log-scale error, prediction of an acceptable interval, and soft-label classification should be compared later using \emph{reconstruction regret}, not just oracle-label regression MSE.
+
+\section{Global-calibration results: tables}
+
+Pooled PSNR-selected multiplier from calibration ground truths: $c_{\mathrm{pooled}}=8.0000$. The table below shows scale values, not image-quality scores.
+
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+CIGS & PSNR c & SSIM c & HaarPSI c & line-aware c & LOIO c\\
+\midrule
+0674 & 8.0000 & 8.0000 & 5.6569 & 4.0000 & 8.0000\\
+0985 & 9.5137 & 8.0000 & 5.6569 & 4.7568 & 8.0000\\
+0917 & 8.0000 & 8.0000 & 5.6569 & 4.0000 & 8.0000\\
+0864 & 8.0000 & 6.7272 & 4.7568 & 4.0000 & 8.0000\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Test-set PSNR improvements in dB relative to $c=1$, averaged first across the three test seeds for each image. LOIO means the pooled scale was calibrated without this image.
+
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+CIGS & Pooled gain & LOIO gain & Oracle gain & Oracle minus pooled\\
+\midrule
+0674 & 4.240 & 4.240 & 4.240 & 0.000\\
+0985 & 3.984 & 3.984 & 3.985 & 0.001\\
+0917 & 3.862 & 3.862 & 3.862 & 0.000\\
+0864 & 3.929 & 3.929 & 3.929 & 0.000\\
+Four-image mean & 4.004 & 4.004 & 4.004 & 0.000\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A large oracle-minus-pooled gap may justify an adaptive scalar predictor, but only if the oracle scale is stable and predictable from the noisy input. A large oracle gain alone does not establish that predictability.
+
+\section{Quality and line-preservation figures}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/per_image_quality_vs_scale.png}}
+\caption{PSNR and signed contrast retention versus scale. Dotted c=1 and calibration-optimum markers reveal whether a better global metric coincides with diminished annotated-line contrast. Test curves are displayed, not used for calibration.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/global_vs_line_pareto.png}}
+\caption{PSNR versus annotated-line contrast for each CIGS image. The labelled points are scales from calibration noise; visualise the global-quality versus line-preservation trade-off rather than collapsing them into one score.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/full_image_comparison.png}}
+\caption{Full-image reconstruction overview. All panels use a common PCM intensity scale. Confirm whether smoother device interiors come at the expense of the thin dark line.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/thin_line_crops.png}}
+\caption{Initial fine-line ROI overview. Show identical line-centred crop coordinates with a shared colour scale. The fixed-location line metric is a diagnostic, not a validated automatic crack detector.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/scale_calibration_gains.png}}
+\caption{Does a per-datum oracle improve beyond a fixed multiplier?. Left: gains over c=1 on held-out noise. Right: upper-bound oracle minus pooled/LOIO calibrated scale, the most useful measure for deciding whether a learned scaling head is worthwhile.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/oracle_labels_near_optimal.png}}
+\caption{Oracle log-scales and near-optimal sets. Each dot is an optimal scale for one noise realisation; the bar is only the min/max hull of the sampled near-optimal set. Large changes in labels with tiny regret indicate unstable regression targets.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/oracle_psnr_regret_curves.png}}
+\caption{Per-datum PSNR regret across scales. Compare the performance loss of choosing the wrong scale. Hard scale-label errors are less important when the PSNR curve has a broad flat maximum.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/soft_oracle_targets_calibration.png}}
+\caption{Soft oracle training targets on calibration data. Targets put substantial probability on all nearly optimal tested scales. All plotted probabilities are computed offline using calibration ground truth, not from a learned predictor.}
+\end{figure}
+\clearpage
+
+\section{Detailed held-out visual atlas: all images and test noise seeds}
+
+Each of the four CIGS images and each of the three held-out test noise realisations receives a full-image and enlarged annotated-line ROI panel. Every panel compares ground truth, $c=1$, pooled scale, leave-one-image-out scale, per-image PSNR scale, line-aware calibration scale, and the test-ground-truth posthoc oracle. All panels use a common display range of [0,1] without modifying the saved float32 arrays.
+
+\subsection{CIGS 0674}
+
+The verified line is horizontal with nominal width 1 pixel(s); centre coordinate 115, longitudinal indices [106,139). Crack annotations were audited against the original PNG before executing the sweep.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0674_test_2101_full.png}}
+\caption{CIGS 0674, test\_2101: full reconstructions. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 32.867 dB; its gain over c=1 is 4.279 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0674_test_2101_roi.png}}
+\caption{CIGS 0674, test\_2101: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 32.867 dB; its gain over c=1 is 4.279 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0674_test_2102_full.png}}
+\caption{CIGS 0674, test\_2102: full reconstructions. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.813 dB; its gain over c=1 is 4.271 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0674_test_2102_roi.png}}
+\caption{CIGS 0674, test\_2102: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.813 dB; its gain over c=1 is 4.271 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0674_test_2103_full.png}}
+\caption{CIGS 0674, test\_2103: full reconstructions. On held-out noise seed test\_2103, the posthoc oracle c=8.0000 has PSNR 32.622 dB; its gain over c=1 is 4.168 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0674_test_2103_roi.png}}
+\caption{CIGS 0674, test\_2103: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2103, the posthoc oracle c=8.0000 has PSNR 32.622 dB; its gain over c=1 is 4.168 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\subsection{CIGS 0985}
+
+The verified line is vertical with nominal width 3 pixel(s); centre coordinate 107, longitudinal indices [135,168). Crack annotations were audited against the original PNG before executing the sweep.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0985_test_2101_full.png}}
+\caption{CIGS 0985, test\_2101: full reconstructions. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 31.956 dB; its gain over c=1 is 3.966 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0985_test_2101_roi.png}}
+\caption{CIGS 0985, test\_2101: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 31.956 dB; its gain over c=1 is 3.966 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0985_test_2102_full.png}}
+\caption{CIGS 0985, test\_2102: full reconstructions. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.048 dB; its gain over c=1 is 4.089 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0985_test_2102_roi.png}}
+\caption{CIGS 0985, test\_2102: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.048 dB; its gain over c=1 is 4.089 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0985_test_2103_full.png}}
+\caption{CIGS 0985, test\_2103: full reconstructions. On held-out noise seed test\_2103, the posthoc oracle c=9.5137 has PSNR 31.980 dB; its gain over c=1 is 3.899 dB, and its extra gain over a single pooled c is 0.004 dB. Near-optimal discrete scales (within 0.10 dB) are 8.0;9.51365692;11.313708499. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0985_test_2103_roi.png}}
+\caption{CIGS 0985, test\_2103: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2103, the posthoc oracle c=9.5137 has PSNR 31.980 dB; its gain over c=1 is 3.899 dB, and its extra gain over a single pooled c is 0.004 dB. Near-optimal discrete scales (within 0.10 dB) are 8.0;9.51365692;11.313708499. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\subsection{CIGS 0917}
+
+The verified line is vertical with nominal width 3 pixel(s); centre coordinate 88, longitudinal indices [40,213). Crack annotations were audited against the original PNG before executing the sweep.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0917_test_2101_full.png}}
+\caption{CIGS 0917, test\_2101: full reconstructions. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 31.911 dB; its gain over c=1 is 3.867 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0917_test_2101_roi.png}}
+\caption{CIGS 0917, test\_2101: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 31.911 dB; its gain over c=1 is 3.867 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0917_test_2102_full.png}}
+\caption{CIGS 0917, test\_2102: full reconstructions. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.106 dB; its gain over c=1 is 3.816 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0917_test_2102_roi.png}}
+\caption{CIGS 0917, test\_2102: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.106 dB; its gain over c=1 is 3.816 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0917_test_2103_full.png}}
+\caption{CIGS 0917, test\_2103: full reconstructions. On held-out noise seed test\_2103, the posthoc oracle c=8.0000 has PSNR 31.938 dB; its gain over c=1 is 3.903 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0917_test_2103_roi.png}}
+\caption{CIGS 0917, test\_2103: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2103, the posthoc oracle c=8.0000 has PSNR 31.938 dB; its gain over c=1 is 3.903 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\subsection{CIGS 0864}
+
+The verified line is horizontal with nominal width 3 pixel(s); centre coordinate 132, longitudinal indices [77,126). Crack annotations were audited against the original PNG before executing the sweep.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0864_test_2101_full.png}}
+\caption{CIGS 0864, test\_2101: full reconstructions. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 32.171 dB; its gain over c=1 is 3.982 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692;11.313708499. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0864_test_2101_roi.png}}
+\caption{CIGS 0864, test\_2101: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2101, the posthoc oracle c=8.0000 has PSNR 32.171 dB; its gain over c=1 is 3.982 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692;11.313708499. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0864_test_2102_full.png}}
+\caption{CIGS 0864, test\_2102: full reconstructions. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.183 dB; its gain over c=1 is 3.887 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0864_test_2102_roi.png}}
+\caption{CIGS 0864, test\_2102: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2102, the posthoc oracle c=8.0000 has PSNR 32.183 dB; its gain over c=1 is 3.887 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0864_test_2103_full.png}}
+\caption{CIGS 0864, test\_2103: full reconstructions. On held-out noise seed test\_2103, the posthoc oracle c=8.0000 has PSNR 32.290 dB; its gain over c=1 is 3.919 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone.}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{figures/visual_atlas/CIGS_0864_test_2103_roi.png}}
+\caption{CIGS 0864, test\_2103: enlarged thin-line ROI. This is the same measurement and the same ordered methods as the preceding full image. On held-out noise seed test\_2103, the posthoc oracle c=8.0000 has PSNR 32.290 dB; its gain over c=1 is 3.919 dB, and its extra gain over a single pooled c is 0.000 dB. Near-optimal discrete scales (within 0.10 dB) are 6.727171322;8.0;9.51365692. Whether the line survives should be judged from the ROI and signed line-contrast scores, not PSNR alone. Some annotated lines are electrode tracks rather than confirmed material defects; false structures must also be checked.}
+\end{figure}
+\clearpage
+
+\section{Oracle-label stability and limitations}
+
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+CIGS & Seeds & SD(log2 c*) & log2 c* span & Near-opt set overlap\\
+\midrule
+0674 & 5 & 0.000 & 0.000 & 0.667\\
+0985 & 5 & 0.137 & 0.250 & 0.500\\
+0917 & 5 & 0.112 & 0.250 & 0.667\\
+0864 & 5 & 0.000 & 0.000 & 0.750\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The oracle label is a function of both the noisy datum AND the unknown ground truth. Two candidate scenes can produce similar undersampled measurements yet have different best scales. Therefore an arbitrary improvement by the posthoc oracle cannot automatically be learned from measurements. This Stage I experiment contains just four independent image structures and cannot measure neural generalisation. The prepared Stage II trains the scale head on exactly 50 other image structures (10 per category), and selects it using 25 separate validation images. The same four CIGS images are later used with NEW noise seeds for a small, non-blinded proof of concept.
+
+\section{Conclusions and staged next experiments}
+
+The most important quantity for deciding on Approach A is the \emph{additional} oracle improvement beyond one validation-calibrated global multiplier. If this is small, a fixed multiplier is preferable. If the remaining gap is large but oracle labels change abruptly across noise seeds while quality curves are flat, train on near-optimal regions or soft metric-curve targets rather than a hard log-scale label. Only after an image-disjoint dataset is available should we freeze the map network and train the scalar head.
+
+\begin{enumerate}
+
+\item Verify the full original images and manually approve all line locations, with pixel hashes.
+
+\item Repeat with an independently chosen checkpoint trained on simulated PCM noise; keep the old checkpoint as historical control.
+
+\item Compare c=1, pooled calibration c, LOIO c, per-image c, and posthoc per-datum oracle on held-out seeds.
+
+\item Quantify label instability, near-optimal sets, soft targets and quality regret; keep crack preservation as a separate objective.
+
+\item Use the 50 independent training images and 25 validation images from the five synthetic PCM categories to train/select Approach A scalar predictors without using these four images.
+
+\item Run final evaluation with three NEW noise seeds on the same four CIGS structures, excluding them entirely from head training and validation; acknowledge Stage I has already exposed these structures.
+
+\end{enumerate}
+
+\section{Artifact provenance and numerical integrity}
+
+All numerical scores are read directly from full-precision CSV metrics and stored float32 arrays. Figures are display-only resamplings; they are not used to calculate metrics. The original measured arrays, sampled indices, noise realisations, learned maps and checkpoints remain in the immutable experiment output directory. TeX and PDF are generated after complete coarse/refinement sweeps, never before.
+
+Protocol identifier: experiment\_1\_on\_28-10-2026\_learned\_posttraining\_scale\_calibration\_v3\\Code revision: ce5dcb4780780d9779eee6c43117d73d001db4af\\Run directory: /store/LION/ttv22/pcm/results/experiment\_1\_on\_28-10-2026/old\\Checkpoint: /store/LION/ttv22/pcm/results/pcm/pcm\_supervised/20260920\_025657\_TV/checkpoints/best\_val\_loss\_s0.20\_cJ6.pt
+
+\end{document}
