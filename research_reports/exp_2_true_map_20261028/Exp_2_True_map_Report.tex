@@ -1,0 +1,127 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=22mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs,longtable,tabularx}
+\usepackage{float}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+\title{\textbf{exp 2 True map}\\[4pt]\large Ground-truth-informed spatial regularisation maps for PCM U-TV\\ Accuracy, line retention, and PDHG computation time}
+\author{PCM LION research experiment}
+\date{28 October 2026}
+\begin{document}
+\maketitle\tableofcontents\clearpage
+\section{Executive summary}
+This experiment is an \textbf{offline counterfactual diagnostic}, not a deployable reconstruction algorithm: the actual ground-truth image is used only to compute alternative TV maps. The noisy measurements, operator, solver and initial iterate remain the same. The maps are not provably optimal; their use of ground truth must not be confused with a practical inverse-problem method.
+The main comparison is always against the calibrated measurement-conditioned U-TV map at $c=8$, not only the uncalibrated $c=1$ method. Both mean-matching and calibration-only scalar selection are used to limit confounding by global regularisation strength.
+\section{Map construction and experimental setup}
+We study $y=Ax^\star+\varepsilon$ with the same PCM Hadamard measurement simulation, sample patterns, and noise seeds as Experiment 1. The original U-TV image is produced with the learned map $\Lambda_y=\Lambda_\theta(z(y))$, where $z(y)$ is the CG image used by the trained model. The alternative CNN map is $\Lambda_{\mathrm{GT}}=\Lambda_\theta(Sx^\star)$, with $S$ the same image intensity scaling used by the PCM forward model. Both maps use the \emph{same frozen CNN}.
+\begin{align*}
+\widetilde\Lambda_{\mathrm{GT}}&=\Lambda_{\mathrm{GT}}\frac{\operatorname{mean}(\Lambda_y)}{\operatorname{mean}(\Lambda_{\mathrm{GT}})},\\
+\Lambda_{\mathrm{edge}}&=\operatorname{mean}(\Lambda_y)\frac{w(\nabla Sx^\star)}{\operatorname{mean}(w(\nabla Sx^\star))},\\
+w(g)&=\epsilon+(1-\epsilon)\exp[-(g/\kappa)^2].
+\end{align*}
+Here $\epsilon=0.05$ and $\kappa$ is the 90th percentile of strictly positive GT gradient magnitudes. The edge map is designed to penalise known sharp transitions less strongly; it is a heuristic, \emph{not} an oracle-minimising parameter map. Mean-matching makes the average unscaled TV penalty comparable to the measurement-conditioned baseline.
+\begin{equation*}
+x_{m,c,K}=\mathrm{PDHG}_{K}\!\left(y,\;c\Lambda_m\right),
+\end{equation*}
+with identical $y,A$, zero initialisation and model step sizes for all compared maps. All primary reconstructions use 256 steps. Map-scale candidates are selected only from the two calibration noise seeds, and the results below are for three held-out noise seeds per image.
+\subsection{Ground-truth disclosure and inference limitation}
+Using $x^\star$ to design a regulariser can produce more informative spatial weights but is unavailable for real measurements. Any apparent reduction in pre-processing time by bypassing CG is \emph{not} a realistic inference-time improvement. GPU timing on a 4070 shared with ongoing model training is exploratory until repeated on an otherwise idle device.
+\section{Scale calibration (calibration seeds only)}
+\begin{center}\begin{tabular}{lrr}\toprule Map type & Selected scalar $c$ & Calibration mean PSNR (dB)\\\midrule
+gt\_cnn\_meanmatched & 8.000 & 32.139 \\
+gt\_edge\_meanmatched & 0.500 & 31.323 \\
+\bottomrule\end{tabular}\end{center}
+This selection uses ground-truth PSNR for the two calibration-noise seeds of each of the same four CIGS images. The three held-out test-noise seeds are excluded from selecting scale; this is not a test on previously unseen image structures.
+\textbf{Boundary warning:} the GT-edge map selects $c=0.5$, the \emph{smallest} prespecified candidate in $\{0.5,1,2,4,8,16,32\}$. Its optimum may lie below the tested range. Its observed PSNR deficit therefore does not rule out better edge-map performance with a wider scale search.
+\section{Held-out test accuracy}
+\begin{center}\small\begin{tabular}{lrrrr}\toprule Method & PSNR & SSIM & HaarPSI & MSE $\times 10^3$ \\\midrule
+measured\_c1 & 28.236 & 0.812 & 0.780 & 1.503 \\
+measured\_c8 & 32.240 & 0.949 & 0.864 & 0.599 \\
+gt\_cnn\_raw\_c1 & 28.453 & 0.817 & 0.768 & 1.430 \\
+gt\_cnn\_raw\_c8 & 32.217 & 0.951 & 0.858 & 0.602 \\
+gt\_cnn\_matched\_calibrated & 32.095 & 0.950 & 0.866 & 0.619 \\
+gt\_edge\_matched\_calibrated & 31.367 & 0.911 & 0.830 & 0.732 \\
+\bottomrule\end{tabular}\end{center}
+Means are balanced across the four images, each evaluated at three noise seeds. With only four distinct images, do not interpret noise-seed variations as twelve independent image samples.
+\begin{figure}[H]\centering\includegraphics[width=.99\textwidth]{figures/accuracy_summary.png}\caption{Global accuracy and local annotated-line contrast. A gain in PSNR can coexist with a loss in a true thin line.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.77\textwidth]{figures/psnr_scatter.png}\caption{Comparison of ground-truth-assisted maps against the calibrated $c=8$ measurement-conditioned map. Points above the diagonal favour the alternative map.}\end{figure}
+\section{Paired changes against the calibrated U-TV baseline}
+\begin{center}\begin{tabular}{lr}\toprule Method & Mean PSNR difference (dB) \\\midrule
+measured\_c1 & -4.0035 \\
+measured\_c8 & +0.0000 \\
+gt\_cnn\_raw\_c1 & -3.7865 \\
+gt\_cnn\_raw\_c8 & -0.0226 \\
+gt\_cnn\_matched\_calibrated & -0.1450 \\
+gt\_edge\_matched\_calibrated & -0.8728 \\
+\bottomrule\end{tabular}\end{center}
+The signed line contrast is evaluated separately. CIGS image 0917 contains a conductor track, not a confirmed crack; none of the four line annotations is a validated material-defect segmentation.
+\section{PDHG iteration count, accuracy, and runtime}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/accuracy_speed.png}\caption{Measured PDHG iterations, median solve time and image accuracy. Timings exclude GT acquisition and are not a deployable end-to-end speed comparison.}\end{figure}
+Time-to-quality is measured by the earliest step count reaching the measured-map $c=8$ PSNR (256 steps) minus $0.1$ dB. A second criterion measures distance to each map\textquotesingle s own 1024-step approximate solution. Neither is a rigorous primal-dual gap certificate. Methods may fail to reach a common target; these failures are reported rather than assigned a fictional runtime.
+All whole-image and ROI comparisons use a common intensity range $[0,1.2]$. The maps in each per-image figure use a shared range across displayed variants; mean-matched maps suppress the effect of arbitrary CNN output scale. These figures show \emph{one predeclared test noise realisation per image}; the quantitative tables cover all three.
+\subsection{Line preservation}
+\begin{center}\small\begin{tabular}{lrrr}\toprule Method & Retained contrast & Line recall & False positive rate \\ \midrule
+measured\_c1 & 0.738 & 0.845 & 0.151 \\
+measured\_c8 & 0.631 & 0.750 & 0.045 \\
+gt\_cnn\_raw\_c1 & 0.744 & 0.853 & 0.142 \\
+gt\_cnn\_raw\_c8 & 0.652 & 0.750 & 0.034 \\
+gt\_cnn\_matched\_calibrated & 0.676 & 0.750 & 0.042 \\
+gt\_edge\_matched\_calibrated & 0.631 & 0.753 & 0.061 \\
+\bottomrule\end{tabular}\end{center}
+These are fixed-threshold fine-line diagnostics, not verified crack-segmentation metrics. Image 0917 contains a conductor track.
+\subsection{Fixed-depth PDHG runtime}
+\begin{center}\small\begin{tabular}{lrrr}\toprule Method & 128 steps (s) & 256 steps (s) & 512 steps (s) \\ \midrule
+measured\_c8 & 0.1410 & 0.2816 & 0.5639 \\
+gt\_cnn\_matched\_calibrated & 0.1410 & 0.2819 & 0.5642 \\
+gt\_edge\_matched\_calibrated & 0.1412 & 0.2823 & 0.5640 \\
+\bottomrule\end{tabular}\end{center}
+Times are measured from the actual GPU execution and exclude GT acquisition and CG construction. Concurrent 4070 training may affect timings.
+\subsection{Time to comparable reconstruction quality}
+\begin{center}\small\begin{tabular}{lrrr}\toprule Method & Successful / 12 & Median steps & Median time (s) \\ \midrule
+measured\_c8 & 12/12 & 96 & 0.1056 \\
+gt\_cnn\_matched\_calibrated & 3/12 & 128 & 0.1408 \\
+gt\_edge\_matched\_calibrated & 0/12 & -- & -- \\
+\bottomrule\end{tabular}\end{center}
+The reference is the measured-map c=8 at 256 iterations, allowing 0.1 dB lower PSNR. Inaccessible quality targets are failures, not zero-cost successes.
+\subsection{Map-generation overhead}
+\begin{center}\begin{tabular}{lr}\toprule Map creation & Median seconds \\ \midrule
+CNN(CG($y$)) & 0.000499 \\
+CNN($Sx^\star$) & 0.000467 \\
+GT edge weighting & 0.001455 \\
+\bottomrule\end{tabular}\end{center}
+These costs assume the input image is already available. GT itself is inaccessible in real PCM reconstruction and cannot be counted as a speed gain.
+\section{Complete four-image visual comparisons}
+\subsection{CIGS 0674}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/maps_0674.png}\caption{GT and spatial regularisation maps for CIGS 0674. The GT-informed CNN prediction is not an optimal or deployable map.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/full_0674.png}\caption{Whole-image reconstruction comparison for CIGS 0674 under one shared acquisition.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/roi_0674.png}\caption{Common-scale close-ups of the audited fine-line region, CIGS 0674. Distinguish the conductor track in image 0917 from crack-like lines.}\end{figure}
+\subsection{CIGS 0985}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/maps_0985.png}\caption{GT and spatial regularisation maps for CIGS 0985. The GT-informed CNN prediction is not an optimal or deployable map.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/full_0985.png}\caption{Whole-image reconstruction comparison for CIGS 0985 under one shared acquisition.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/roi_0985.png}\caption{Common-scale close-ups of the audited fine-line region, CIGS 0985. Distinguish the conductor track in image 0917 from crack-like lines.}\end{figure}
+\subsection{CIGS 0917}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/maps_0917.png}\caption{GT and spatial regularisation maps for CIGS 0917. The GT-informed CNN prediction is not an optimal or deployable map.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/full_0917.png}\caption{Whole-image reconstruction comparison for CIGS 0917 under one shared acquisition.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/roi_0917.png}\caption{Common-scale close-ups of the audited fine-line region, CIGS 0917. Distinguish the conductor track in image 0917 from crack-like lines.}\end{figure}
+\subsection{CIGS 0864}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/maps_0864.png}\caption{GT and spatial regularisation maps for CIGS 0864. The GT-informed CNN prediction is not an optimal or deployable map.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/full_0864.png}\caption{Whole-image reconstruction comparison for CIGS 0864 under one shared acquisition.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\textwidth]{figures/roi_0864.png}\caption{Common-scale close-ups of the audited fine-line region, CIGS 0864. Distinguish the conductor track in image 0917 from crack-like lines.}\end{figure}
+\section{Interpretation and limitations}
+\begin{enumerate}
+\item The GT-informed map need not minimise expected reconstruction error, because the original U-Net was never trained to map clean ground truth to optimal regularisation weights. Passing GT may also be an out-of-distribution input relative to its CG training images.
+\item The GT-edge map is a hand-crafted spatial prior; matching global map means is helpful but does not imply equal effective TV regularisation for each image. Its selected scalar is the lower boundary of the tested search grid; sub-0.5 scalars are an untested sensitivity analysis.
+\item Compare measured $c=8$ with GT-informed variants at the same PDHG depth. At a fixed number of iterations, a changed map need not make PDHG itself faster.
+\item A comparison at the same target PSNR can show practical iteration savings, but it is not a mathematically rigorous convergence-rate comparison because each map defines a different objective.
+\item Input GT is supplied for free only as an upper-bound diagnostic. It must not be described as a deployable PCM measurement-to-reconstruction algorithm or measured as a real reduction in end-to-end inference latency.
+\item These four images were already examined in Experiment 1. The result is exploratory; scale-calibration seeds and test-noise seeds are disjoint, but no completely untouched image population is claimed.
+\end{enumerate}
+\section{Reproducibility and source data}
+All experiment code, source protocol, map arrays, reconstructions and metrics were generated with a frozen checkpoint and the exact Experiment 1 acquisition seeds. The archive includes \texttt{protocol.json}, \texttt{metrics.csv}, \texttt{selection.json}, and report figures. No new network parameters were trained.
+\end{document}
