@@ -1,0 +1,118 @@
+{
+  "name": "Full comparison of 4070 and 4090 trainings \u2014 50-image repeat",
+  "created_utc": "2026-10-28T14:10:34.063569+00:00",
+  "status": "prepared_checkpoints_frozen_before_test",
+  "source_comparison": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_independent_test_20261027",
+  "source_code_commit": "9188b0735843c96526537b6b9bfd834fd089f7cd",
+  "protocol_reused_from": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_independent_test_20261027/protocol_manifest.json",
+  "acquisition_seed_namespace": "pcm_independent_holdout_v1_20261027",
+  "subset_seed_namespace": "pcm_full_comparison_50_test_ids_20261028",
+  "subset_per_category": {
+    "CIGS": [
+      55,
+      79,
+      254,
+      279,
+      331,
+      376,
+      623,
+      710,
+      821,
+      933
+    ],
+    "Organic": [
+      188,
+      218,
+      232,
+      249,
+      364,
+      501,
+      727,
+      762,
+      807,
+      968
+    ],
+    "Perovskite": [
+      44,
+      55,
+      188,
+      254,
+      279,
+      333,
+      610,
+      611,
+      767,
+      786
+    ],
+    "Reference": [
+      21,
+      232,
+      294,
+      301,
+      331,
+      333,
+      370,
+      558,
+      608,
+      681
+    ],
+    "Silicone": [
+      11,
+      31,
+      79,
+      188,
+      307,
+      414,
+      527,
+      610,
+      793,
+      805
+    ]
+  },
+  "categories": [
+    "CIGS",
+    "Organic",
+    "Perovskite",
+    "Reference",
+    "Silicone"
+  ],
+  "number_images": 50,
+  "number_acquisitions": 100,
+  "balanced_noise_conditions": [
+    "zero_inclusive_4070",
+    "positive_4090"
+  ],
+  "checkpoints_current_frozen": {
+    "4070": {
+      "path": "/store/LION/ttv22/pcm/results/pcm/pcm_full_comparison_50_20261028/4070_best_20261028.pt",
+      "epoch": 17,
+      "global_step": 76500,
+      "sha256": "3d0a601779ec3a7b57b0ebf1031a66e1bf4769ee99319ce3ab82c659d87a8ab8"
+    },
+    "4090": {
+      "path": "/store/LION/ttv22/pcm/results/pcm/pcm_full_comparison_50_20261028/4090_best_20261028.pt",
+      "epoch": 23,
+      "global_step": 103500,
+      "sha256": "7b1ec97273d00cc565999de2e2ddf0297f4b8277674e5bd5d6c3d3d7af84823f"
+    }
+  },
+  "checkpoints_old_frozen": {
+    "4070": {
+      "epoch": 7,
+      "step": 31500,
+      "sha256": "abdb7542f95b51c31671e79a3f5ed702be3c44a5444bdf5287cb546ec4e03553",
+      "path": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_independent_test_20261027/4070_best_frozen.pt"
+    },
+    "4090": {
+      "epoch": 22,
+      "step": 99000,
+      "sha256": "2c945d003571d7b38bbe771970e50961b63ef6969588e9d324825c857092eff5",
+      "path": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_independent_test_20261027/4090_best_frozen.pt"
+    }
+  },
+  "gpu": "RTX 4070, physical GPU index 0",
+  "checkpoint_selection": "pre-existing training validation best (frozen prior to evaluating this test subset)",
+  "reference_reuse": "Old checkpoint test metrics reused byte-identically from the completed 2026-10-27 full test on exactly matching acquisition seeds, no old inference repeated.",
+  "test_reuse_caveat": "These are selected from the already-evaluated 2026-10-27 test set. Not a new untouched test set; compare primarily paired checkpoint changes and do not tune parameters on test results.",
+  "evaluation_policy": "No changes to running training, model eval/no_grad, verify all acquisition pattern and measurement hashes against prior full test."
+}
