@@ -1,0 +1,7 @@
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+METHOD admm GIT ce5dcb4780780d9779eee6c43117d73d001db4af CUDA False
+MODEL LOADED pnp_admm_drunet SECONDS 0.2
+METRIC pnp_admm_drunet CIGS_0611 {'mse': 0.18977, 'psnr': 7.21778, 'ssim': 0.08728, 'haarpsi': 0.2619, 'pearson_corr': 0.7168}
+COMPLETED pnp_admm_drunet CIGS 611 SECONDS 38.2

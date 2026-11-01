@@ -1,0 +1,7 @@
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+METHOD gs GIT ce5dcb4780780d9779eee6c43117d73d001db4af CUDA False
+MODEL LOADED pnp_gs_deepinv_drunet SECONDS 0.4
+METRIC pnp_gs_deepinv_drunet CIGS_0068 {'mse': 0.00066, 'psnr': 31.83253, 'ssim': 0.65107, 'haarpsi': 0.85084, 'pearson_corr': 0.99853}
+COMPLETED pnp_gs_deepinv_drunet CIGS 68 SECONDS 56.5

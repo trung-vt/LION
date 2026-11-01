@@ -1,0 +1,13 @@
+{
+  "category": "CIGS",
+  "sample_id": 611,
+  "branch": "experiments_10",
+  "git_commit": "ce5dcb4780780d9779eee6c43117d73d001db4af",
+  "acquisition_seed": 81811379,
+  "ratio": 0.2,
+  "coarse_j": 6,
+  "noise": "PCM NPL default",
+  "measurement_sha256": "559fd9b9ceabe8c05e685df4de774875be6e0cdb059105c78dd42d0f6f6494d5",
+  "device": "cpu",
+  "checkpoint_38": "/store/LION/ttv22/pcm/results/pcm/pcm_supervised_varied_noise/20261024_231223_TV_supervised_varied_noise_ratio005_05_variable_npl/final_selection/best_available_validation_epoch38.pt"
+}

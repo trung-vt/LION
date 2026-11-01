@@ -1,0 +1,18 @@
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+Sample IDs to load: [470, 301, 608, 933, 623, 762, 199, 681, 254, 288]
+METHOD basic GIT ce5dcb4780780d9779eee6c43117d73d001db4af CUDA False
+METRIC zero_filled CIGS_0611 {'mse': 0.00258, 'psnr': 25.88849, 'ssim': 0.47782, 'haarpsi': 0.56088, 'pearson_corr': 0.99373}
+BASIC CIGS 611 ZERO
+METRIC spgl1 CIGS_0611 {'mse': 0.00202, 'psnr': 26.95092, 'ssim': 0.43447, 'haarpsi': 0.6801, 'pearson_corr': 0.99511}
+BASIC CIGS 611 SPGL1
+Loading pretrained model `best_available_validation_epoch38` from /store/LION/ttv22/pcm/results/pcm/pcm_supervised_varied_noise/20261024_231223_TV_supervised_varied_noise_ratio005_05_variable_npl/final_selection/best_available_validation_epoch38.pt ...
+METRIC supervised_utv_ep38 CIGS_0611 {'mse': 0.00056, 'psnr': 32.54643, 'ssim': 0.91313, 'haarpsi': 0.80513, 'pearson_corr': 0.99864}
+BASIC CIGS 611 SUPERVISED
+METRIC zero_filled CIGS_0068 {'mse': 0.00259, 'psnr': 25.86515, 'ssim': 0.48956, 'haarpsi': 0.56449, 'pearson_corr': 0.99405}
+BASIC CIGS 68 ZERO
+METRIC spgl1 CIGS_0068 {'mse': 0.00212, 'psnr': 26.73363, 'ssim': 0.45713, 'haarpsi': 0.7125, 'pearson_corr': 0.99517}
+BASIC CIGS 68 SPGL1
+Loading pretrained model `best_available_validation_epoch38` from /store/LION/ttv22/pcm/results/pcm/pcm_supervised_varied_noise/20261024_231223_TV_supervised_varied_noise_ratio005_05_variable_npl/final_selection/best_available_validation_epoch38.pt ...
+METRIC supervised_utv_ep38 CIGS_0068 {'mse': 0.0006, 'psnr': 32.20862, 'ssim': 0.9218, 'haarpsi': 0.79918, 'pearson_corr': 0.99865}
+BASIC CIGS 68 SUPERVISED

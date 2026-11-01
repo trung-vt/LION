@@ -1,0 +1,19 @@
+category,sample_id,method,status,psnr,measurement_sha256
+CIGS,611,ground_truth,ground truth,nan,
+CIGS,611,zero_filled,matched experiment_10 CPU,25.88849449157715,559fd9b9ceabe8c05e685df4de774875be6e0cdb059105c78dd42d0f6f6494d5
+CIGS,611,spgl1,matched experiment_10 CPU,26.9509220123291,559fd9b9ceabe8c05e685df4de774875be6e0cdb059105c78dd42d0f6f6494d5
+CIGS,611,pnp_admm_drunet,matched experiment_10 CPU,7.217782974243164,559fd9b9ceabe8c05e685df4de774875be6e0cdb059105c78dd42d0f6f6494d5
+CIGS,611,pnp_admm_dwtdnet_tiny,weights missing,nan,
+CIGS,611,pnp_gs_deepinv_drunet,matched experiment_10 CPU,31.96893882751465,559fd9b9ceabe8c05e685df4de774875be6e0cdb059105c78dd42d0f6f6494d5
+CIGS,611,pnp_gs_deepinv_dwtdnet_tiny,weights missing,nan,
+CIGS,611,supervised_utv_ep38,matched experiment_10 CPU,32.54643249511719,559fd9b9ceabe8c05e685df4de774875be6e0cdb059105c78dd42d0f6f6494d5
+CIGS,611,zero_shot_utv,archived different measurement,28.181247003685886,
+CIGS,68,ground_truth,ground truth,nan,
+CIGS,68,zero_filled,matched experiment_10 CPU,25.865148544311523,ba96d83d2fc5b48cba356d7743cb9a1c4425c4b3a8eb9d4ee0ec18cc5681a4f6
+CIGS,68,spgl1,matched experiment_10 CPU,26.73362922668457,ba96d83d2fc5b48cba356d7743cb9a1c4425c4b3a8eb9d4ee0ec18cc5681a4f6
+CIGS,68,pnp_admm_drunet,matched experiment_10 CPU,5.841667175292969,ba96d83d2fc5b48cba356d7743cb9a1c4425c4b3a8eb9d4ee0ec18cc5681a4f6
+CIGS,68,pnp_admm_dwtdnet_tiny,weights missing,nan,
+CIGS,68,pnp_gs_deepinv_drunet,matched experiment_10 CPU,31.83252716064453,ba96d83d2fc5b48cba356d7743cb9a1c4425c4b3a8eb9d4ee0ec18cc5681a4f6
+CIGS,68,pnp_gs_deepinv_dwtdnet_tiny,weights missing,nan,
+CIGS,68,supervised_utv_ep38,matched experiment_10 CPU,32.208621978759766,ba96d83d2fc5b48cba356d7743cb9a1c4425c4b3a8eb9d4ee0ec18cc5681a4f6
+CIGS,68,zero_shot_utv,archived different measurement,25.638526399830184,
