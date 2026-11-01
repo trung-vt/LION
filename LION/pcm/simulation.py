@@ -24,6 +24,8 @@ class PCMAcquisition:
     sampled_indices: np.ndarray
     seed: int | None = None
     i0: torch.Tensor | None = None
+    # CPU flags have shape (*image_batch_shape, repeats, measurements).
+    swap_flags: torch.Tensor | None = None
 
 
 def _sample_split_measurements(
@@ -51,11 +53,14 @@ def simulate_pcm_acquisition(
     rng: np.random.Generator,
     device: torch.device | str,
     seed: int | None = None,
+    record_swaps: bool = False,
 ) -> PCMAcquisition:
     """Simulate a PCM acquisition in the canonical reconstruction convention.
 
     The input image is already in model image units. The forward operator is normalized. ``dark_sigma`` is
     already in normalized measurement units and is not rescaled here.
+    ``record_swaps`` records the realised pairwise flags without changing random draws.
+    Flags are absent for the clean (``noise=None``) path.
     """
     target_image = target_image.to(device)
     op = PhotocurrentMapOp(
@@ -82,6 +87,7 @@ def simulate_pcm_acquisition(
     flat_i_bias = i_bias.reshape(-1)
 
     noisy_measurements: list[torch.Tensor] = []
+    swap_flags: list[torch.Tensor] | None = [] if record_swaps else None
     for y_plus_i, y_minus_i, i_bias_i in zip(
         flat_plus, flat_minus, flat_i_bias, strict=True
     ):
@@ -105,6 +111,7 @@ def simulate_pcm_acquisition(
                     e_rel, dtype=target_image.dtype, device=target_image.device
                 ),
                 rng=rng,
+                **({"swap_flags_out": swap_flags} if record_swaps else {}),
             )
             repeated_measurements.append(y_plus_noisy - y_minus_noisy)
         noisy_measurements.append(torch.stack(repeated_measurements).mean(dim=0))
@@ -117,6 +124,15 @@ def simulate_pcm_acquisition(
         sampled_indices=sampled_indices,
         seed=seed,
         i0=i_bias,
+        swap_flags=(
+            torch.stack(swap_flags).reshape(
+                *y_plus_clean.shape[:-1],
+                noise.n_repeat_acquisitions,
+                y_plus_clean.shape[-1],
+            )
+            if swap_flags is not None
+            else None
+        ),
     )
 
 

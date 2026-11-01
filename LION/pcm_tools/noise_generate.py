@@ -259,6 +259,7 @@ def add_noise(
     e_abs_trace: torch.Tensor,
     e_rel: torch.Tensor,
     rng: np.random.Generator,
+    swap_flags_out: list[torch.Tensor] | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""Add synthetic noise to split-Hadamard measurements.
 
@@ -306,6 +307,7 @@ def add_noise(
         e_abs_trace: Absolute noise component.
         e_rel: Relative noise component.
         rng: Random number generator.
+        swap_flags_out: Optional list receiving one CPU boolean vector; True means swapped.
 
     Returns:
         Noisy positive measurements, noisy negative measurements, and interleaved noisy measurement trace.
@@ -314,6 +316,9 @@ def add_noise(
     device = e_abs_trace.device
 
     i_swap = generate_pairwise_swap_indices(num_pairs=n, rng=rng, device=device)
+    if swap_flags_out is not None:
+        # Audit the existing draw; do not draw again or change the RNG sequence.
+        swap_flags_out.append((i_swap[0::2] % 2).bool().detach().cpu())
 
     interleaved_signal = torch.stack([y_clean_plus, y_clean_minus], dim=1).reshape(-1)
 
