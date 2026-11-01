@@ -6,20 +6,23 @@ from typing import Any
 import numpy as np
 import torch
 from scipy.sparse.linalg import LinearOperator
-from spgl1 import spg_bp
+from spgl1 import spg_bp, spg_bpdn
 
 from LION.operators.Operator import Operator
 from LION.utils.parameter import LIONParameter
 
 
 def spgl1_torch(
-    op: Operator, y: torch.Tensor, **spgl1_kwargs
+    op: Operator, y: torch.Tensor, *, sigma: float = 0.0, **spgl1_kwargs
 ) -> tuple[torch.Tensor, Any]:
-    r"""Use SPGL1 with Basis Pursuit (BP) to solve an l1 sparse reconstruction.
+    r"""Use SPGL1 with Basis Pursuit (BP) or Basis Pursuit Denoising (BPDN).
 
     This is a thin wrapper around the ``spgl1.spg_bp`` that uses torch operators.
     SPGL1 is a spectral projected-gradient method for constrained l1 problems;
     see [BergFriedlander2008]_ and [BergFriedlander2010]_.
+
+    The legacy sigma=0 call still uses spg_bp. Positive sigma calls spg_bpdn.
+    Both use the same linear-operator wrapper.
 
     This wrapper uses the same calling convention (argument names and behaviour) as ``spgl1.spg_bp``;
     see [SPGL1Python]_ for details.
@@ -27,6 +30,7 @@ def spgl1_torch(
     Args:
         op: Linear operator implementing the forward map ``op(w)`` and its adjoint ``op.adjoint(r)``.
         y: Measurements, shape ``(M,)``.
+        sigma: Full L2 residual tolerance in the units of the supplied y (0 for BP).
         spgl1_kwargs: Extra keyword args forwarded to ``spgl1.spg_bp``
             (e.g., tolerances, iteration limits; see [SPGL1Python]_).
 
@@ -75,7 +79,10 @@ def spgl1_torch(
     # print(f"Type of y_np: {type(y_np)}")
     # for k in spgl1_kwargs:
     #     print(f"SPGL1 kwarg: {k} = {spgl1_kwargs[k]} with type {type(spgl1_kwargs[k])}")
-    x_np, _, _, info = spg_bp(A_linop, y_np, **spgl1_kwargs)
+    if sigma == 0.0:
+        x_np, _, _, info = spg_bp(A_linop, y_np, **spgl1_kwargs)
+    else:
+        x_np, _, _, info = spg_bpdn(A_linop, y_np, sigma=sigma, **spgl1_kwargs)
 
     w_hat = torch.from_numpy(x_np.astype(np.float32)).to(device).view_as(w0)
     return w_hat, info

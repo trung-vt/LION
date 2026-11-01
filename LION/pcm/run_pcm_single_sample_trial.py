@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,7 +13,12 @@ import torch
 from LION.data_loaders.pcm.data_loader import GrayscaleImage2D, Measurement1D
 from LION.experiments.pcm_experiments import PCMExperimentParameter
 from LION.pcm.pcm_visualize import absolute_error
-from LION.pcm.reconstruct import AdaptiveMapReconOutput, ReconFn, ReconInput
+from LION.pcm.reconstruct import (
+    AdaptiveMapReconOutput,
+    ReconFn,
+    ReconInput,
+    SolverDiagnosticsReconOutput,
+)
 from LION.pcm.results import PCMResultRow, append_result
 from LION.utils.metrics import compute_metrics
 
@@ -116,6 +122,15 @@ class PCMSingleSampleTrialRun:
         # )
 
         self.log_result(method_name, recon_result)
+        if (
+            isinstance(output, SolverDiagnosticsReconOutput)
+            and self.config.log.save_metrics
+        ):
+            diagnostics_dir = self.method_dir(method_name)
+            diagnostics_dir.mkdir(parents=True, exist_ok=True)
+            (diagnostics_dir / "solver_diagnostics.json").write_text(
+                json.dumps(output.diagnostics, indent=2) + "\n", encoding="utf-8"
+            )
         self.log_and_save(
             trial_description=trial_description,
             method_name=method_name,

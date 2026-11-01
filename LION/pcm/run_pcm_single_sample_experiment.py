@@ -36,6 +36,7 @@ from LION.pcm.reconstruct import (
     SPGL1ReconFn,
 )
 from LION.pcm.results import ZERO_FILLED_METHOD_ID
+from LION.pcm.spgl1_bpdn import SPGL1BPDNParameter, SPGL1BPDNReconFn
 from LION.pcm.run_pcm_single_sample_trial import (
     PCMSingleSampleTrialRun,
     ReconResult,
@@ -644,6 +645,12 @@ def run_method(
     elif isinstance(method_config, ScalarTVParameter):
         trial_description = f"Scalar anisotropic TV (lambda={method_config.lambda_reg:g}, iters={method_config.iters})"
         recon_fn = ScalarTVReconFn(method_config, iteration_callback=iteration_callback)
+
+    elif isinstance(method_config, SPGL1BPDNParameter):
+        trial_description = "SPGL1 Basis Pursuit Denoising " + (
+            "(with LS debias)" if method_config.debias else "(without debias)"
+        )
+        recon_fn = SPGL1BPDNReconFn(method_config, device=device)
 
     elif isinstance(method_config, SPGL1Parameter):
         trial_description = f"SPGL1\n" f"inverse_sign={config.plot.color.inverse_sign})"

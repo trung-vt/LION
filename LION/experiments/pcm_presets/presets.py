@@ -21,6 +21,7 @@ from LION.experiments.pcm_experiments import (
     PCMSingleSampleRuntimeParameter,
 )
 from LION.pcm.noise import PCMNoiseSimulation
+from LION.pcm.spgl1_bpdn import SPGL1BPDNParameter
 from LION.pcm.pcm_config import (
     SelfSupervisedPCMMethodParameter,
     SupervisedPCMMethodParameter,
@@ -338,6 +339,31 @@ QUICK_METHODS = {
         lambda_reg=0.02,
         iters=1024,
         metric_every=1024,
+    ),
+}
+
+# Separate noisy-PCM collection. Do not change the original QUICK_METHODS
+# or silently add BPDN to older paper and NPL experiments.
+NOISY_PCM_METHODS = {
+    **deepcopy(QUICK_METHODS),
+    "spgl1_bpdn": SPGL1BPDNParameter(
+        noise_rms=0.06,  # Pilot only; tune using validation acquisitions.
+        factor=1.0,
+        iters=300,
+        opt_tol=1e-6,
+        wavelet_name="db4",
+        debias=False,
+    ),
+    "spgl1_bpdn_debiased": SPGL1BPDNParameter(
+        noise_rms=0.06,  # Same first-stage BPDN solver and settings.
+        factor=1.0,
+        iters=300,
+        opt_tol=1e-6,
+        wavelet_name="db4",
+        debias=True,
+        debias_iters=10,
+        debias_support_tol=1e-5,
+        debias_tol=1e-7,
     ),
 }
 
@@ -679,6 +705,17 @@ SYNTHETIC_PNG_DATASET_PRESET_BOX_PLOTS = PCMExperimentParameter(
 )
 
 
+# Explicit noisy-BPDN comparison preset. It inherits the existing 10-image
+# per-category synthetic dataset and 20% acquisition protocol; the original
+# dataset and historical method presets remain unmodified.
+SYNTHETIC_PNG_NOISY_BPDN_PRESET = deepcopy(SYNTHETIC_PNG_DATASET_PRESET_BOX_PLOTS)
+SYNTHETIC_PNG_NOISY_BPDN_PRESET.id = "synthetic_png_noisy_bpdn"
+SYNTHETIC_PNG_NOISY_BPDN_PRESET.methods = {
+    "spgl1": deepcopy(QUICK_METHODS["spgl1"]),
+    "spgl1_bpdn": deepcopy(NOISY_PCM_METHODS["spgl1_bpdn"]),
+    "spgl1_bpdn_debiased": deepcopy(NOISY_PCM_METHODS["spgl1_bpdn_debiased"]),
+}
+
 # # Add scalar TV without changing the existing selection of box-plot methods.
 # SYNTHETIC_PNG_DATASET_PRESET_BOX_PLOTS.methods["scalar_tv"] = deepcopy(BOX_PLOT_METHODS["scalar_tv"])
 
@@ -849,6 +886,7 @@ PRESET_LIST = [
     E27_POS1_AVERAGE_MAP_SIMULATED_NOISE_PRESET,
     SYNTHETIC_PNG_DATASET_PRESET_GRID,
     SYNTHETIC_PNG_DATASET_PRESET_BOX_PLOTS,
+    SYNTHETIC_PNG_NOISY_BPDN_PRESET,
     SYNTHETIC_PNG_DATASET_PRESET_30_trials,
 ]
 

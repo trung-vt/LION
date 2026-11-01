@@ -95,6 +95,7 @@ def debias_ls(
     max_iter: int = 200,
     tol: float = 1e-5,
     prog_bar: Callable | None = None,
+    step_size: float | None = None,
 ) -> torch.Tensor:
     """Debiasing least squares on the support of w.
 
@@ -106,6 +107,7 @@ def debias_ls(
         max_iter: Maximum number of gradient descent iterations.
         tol: Relative stopping threshold.
         progress_bar: Whether to show a progress bar. Default is False.
+        step_size: Optional known safe step. None retains legacy norm estimation.
 
     Returns:
         Debiased coefficient vector, shape (Nw,).
@@ -118,9 +120,14 @@ def debias_ls(
 
     op_s = DebiasOp(op, y, w, support_tol=support_tol)
 
-    # Check: Why is the squaring needed here?
-    L = power_method(op_s, device=device) ** 2
-    step = 1.0 / (L + 1e-12)
+    # An explicit safe step avoids estimating the support operator norm.
+    # For B=A Psi^{-1} with normalized PCM rows and an orthogonal wavelet,
+    # ||B_S|| <= 1, so step_size=1 is a valid gradient step.
+    if step_size is None:
+        L = power_method(op_s, device=device) ** 2
+        step = 1.0 / (L + 1e-12)
+    else:
+        step = step_size
 
     v = w[support].clone()
 

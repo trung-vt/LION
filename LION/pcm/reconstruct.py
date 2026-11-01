@@ -55,6 +55,13 @@ class ReconOutput:
 
 
 @dataclass(kw_only=True)
+class SolverDiagnosticsReconOutput(ReconOutput):
+    """Reconstruction plus per-image JSON-compatible solver diagnostics."""
+
+    diagnostics: list[dict[str, object]]
+
+
+@dataclass(kw_only=True)
 class AdaptiveMapReconOutput(ReconOutput):
     lambda_maps: torch.Tensor
 
