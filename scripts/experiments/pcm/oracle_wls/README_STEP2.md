@@ -65,3 +65,13 @@ To regenerate, use `build --protocol <parent_float64_protocol.json> --manifest <
 - NPZ files total 5,770,589 bytes. The 4090 training process (PID 301833) remained running. No reconstruction result or WLS quality claim follows from these checks.
 
 Checksums identify the saved compressed files. Replay compares raw array bytes; a newly compressed ZIP container need not have the same file hash. Keep the decimal 64-bit seeds as exact integers; do not round them through a spreadsheet or floating-point JSON parser.
+
+## Exact source provenance after Git commits
+
+The 50 frozen validation acquisitions contain SHA-256 hashes of the exact Python
+source that generated them. The repository Black hook reformatted three Python
+files during Git commits without changing their syntax trees. Those three files
+were restored byte-for-byte from the audited `review_export.tar.gz` snapshot
+and committed with the Black hook skipped once. This preserves strict source
+hash checks during replay. Do not reformat these three frozen-source files
+without creating a new, explicitly versioned acquisition protocol.

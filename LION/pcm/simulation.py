@@ -126,12 +126,9 @@ def simulate_pcm_acquisition(
         i0=i_bias,
         swap_flags=(
             torch.stack(swap_flags).reshape(
-                *y_plus_clean.shape[:-1],
-                noise.n_repeat_acquisitions,
-                y_plus_clean.shape[-1],
+                *y_plus_clean.shape[:-1], noise.n_repeat_acquisitions, y_plus_clean.shape[-1]
             )
-            if swap_flags is not None
-            else None
+            if swap_flags is not None else None
         ),
     )
 
