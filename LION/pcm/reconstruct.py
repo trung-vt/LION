@@ -96,6 +96,8 @@ class GSPnPReconFn(ReconFn):
     def __call__(self, recon_input: ReconInput) -> ReconOutput:
         """Reconstruct PCM using GS-PnP."""
 
+        # CAUTION: Native GS-PnP matches the configured objective/prox
+        # scale. The DeepInv path requires unnormalized half-squared L2.
         if self.config.uses_deepinv:
             if isinstance(recon_input.op, PhotocurrentMapOp):
                 physics = PCMDeepInvPhysics(recon_input.op)
@@ -186,6 +188,8 @@ class PnPADMMReconFn(ReconFn):
                 #     model_output = scale_a * model_output + scaling_param.r_low
                 return model_output
 
+        # CAUTION: The ADMM penalty is relative to the A,y fidelity units.
+        # Raw-to-normalized Hadamard OLS needs rho -> rho/n.
         pnp = PnPADMM(physics=recon_input.op, denoiser=denoiser_fn)
 
         # if self.precision_builder is not None:

@@ -17,10 +17,13 @@ class CGProxParameter(LIONParameter):
     Attributes:
     ----------
         iters: The number of conjugate gradient iterations.
-        eta: The ADMM penalty parameter.
+        eta: The ADMM penalty relative to the chosen data fidelity.
+            CAUTION: if f -> c*f, use eta -> c*eta for the same proximal
+            map. Dividing OLS by m requires eta -> eta/m.
         eps: The absolute tolerance for the conjugate gradient solver.
         rel_tol: The relative tolerance for the conjugate gradient solver.
-        data_weight: The weight for the data fidelity term.
+        data_weight: The weight for the data fidelity term; this and
+            normalize affect the fidelity scale used by the ADMM CG path.
         normalize: Whether to normalize by the number of measurements.
             If True, assume no batch dimension and divide by total number of elements.
     """

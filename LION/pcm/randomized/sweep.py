@@ -91,6 +91,8 @@ def solve(
         parameters = PnPADMMParameter(
             denoiser=None,
             iters=iterations,
+            # CAUTION: rho belongs to this operator's OLS units; a
+            # raw/normalized Hadamard conversion also scales rho by n.
             prox=PCMProxParameter(rho=config["rho"]),
             sigma=config["sigma"],
         )
@@ -103,6 +105,8 @@ def solve(
 
         result = algorithm.admm_algorithm(y, parameters, iteration_callback=callback)
     elif config["algorithm"] == "gs_proximal_gradient":
+        # CAUTION: for f -> c*f, the same GS step needs
+        # lambda -> c*lambda and tau -> tau/c.
         weight, tau = config["lambda"], config["tau"]
         x = op.adjoint(y)
         gradient, potential = network.grad(x, config["sigma"], set_reset_grad=True)

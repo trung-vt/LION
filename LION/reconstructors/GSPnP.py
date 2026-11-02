@@ -47,7 +47,11 @@ class GSPnPParameter(LIONParameter):
         gamma_backtracking: Should be within (0, 0.5).
         eta_backtracking: Should be within (0, 1).
         data_fidelity: Configuration for the data fidelity term.
+            CAUTION: for f -> c*f, matching GS iterations also require
+            lambda -> c*lambda and stepsize -> stepsize/c.
         data_fidelity_prox: Configuration for the proximal step algorithm.
+            Native GS matches this fidelity in its prox; DeepInv requires
+            unnormalized half-squared L2.
         uses_deepinv: Whether to use DeepInv backend.
         early_stop: Whether the configured convergence criterion may stop GS-PnP early.
         continue_after_early_stop: If True, record the first convergence point but continue
@@ -243,7 +247,10 @@ class GSPnP(BasePnP[GSDenoiser]):
             f = self.prep_data_fidelity(config.data_fidelity, self.measurement_dims)
         if prox_tau_f is None:
             prox_tau_f = self.prep_data_fidelity_prox(
-                config.data_fidelity_prox, measurement, self.measurement_dims
+                config.data_fidelity_prox,
+                measurement,
+                self.measurement_dims,
+                data_fidelity=config.data_fidelity,
             )
 
         lambd = config.lambd
@@ -306,6 +313,8 @@ class GSPnP(BasePnP[GSDenoiser]):
             The data fidelity function. Currently supports 1-norm and squared 2-norm.
         """
         if isinstance(config, NormParameter):
+            # CAUTION: factor and normalize define the objective scale.
+            # The matching proximal step must use that same scale.
             factor = config.factor if config.factor is not None else 1.0 / config.ord
             if config.ord == 2:  # 2-norm squared
 
@@ -370,25 +379,52 @@ class GSPnP(BasePnP[GSDenoiser]):
         raise ValueError(f"Unsupported data fidelity configuration: {type(config)}")
 
     def prep_data_fidelity_prox(
-        self, config, measurement: torch.Tensor, measurement_dims: tuple[int, ...]
+        self,
+        config,
+        measurement: torch.Tensor,
+        measurement_dims: tuple[int, ...],
+        *,
+        data_fidelity: NormParameter | None = None,
     ) -> Callable[[torch.Tensor, float], torch.Tensor]:
         """Create the proximal step for the data fidelity term.
 
         Args:
             config: Configuration parameters for the proximal step algorithm.
             measurement: The measurement tensor. Useful if some precomputation can be done.
-            measurement_dims: Dimensions belonging to one measurement sample. Used for normalizing.
+            measurement_dims: Dimensions belonging to one measurement sample.
+            data_fidelity: Quadratic objective used by GS-PnP. When supplied,
+                its factor and normalization also determine this proximal step.
 
         Returns
         -------
             The proximal step algorithm. It takes current reconstruction and tau, and returns updated reconstruction.
         """
         op = self.op
+        measurement_size = math.prod(measurement.shape[d] for d in measurement_dims)
+        fidelity_scale = None
+        if data_fidelity is not None:
+            if not isinstance(data_fidelity, NormParameter) or data_fidelity.ord != 2:
+                raise ValueError(
+                    "GS-PnP quadratic CG/PCM prox requires squared L2 fidelity."
+                )
+            coefficient = 0.5 if data_fidelity.factor is None else data_fidelity.factor
+            if not math.isfinite(coefficient) or coefficient <= 0:
+                raise ValueError("The quadratic fidelity coefficient must be positive.")
+            # f(x) = fidelity_scale / 2 * ||A x - y||^2.
+            fidelity_scale = 2.0 * coefficient
+            if data_fidelity.normalize:
+                fidelity_scale /= measurement_size
+
         if isinstance(config, CGProxParameter):
-            # Normalize data fidelity term by number of measurements so that eta has consistent meaning
-            # regardless of measurement size
-            measurement_size = math.prod(measurement.shape[d] for d in measurement_dims)
-            factor = 1.0 / measurement_size if config.normalize else 1.0
+            # WARNING: Use the same fidelity scaling as the GS objective.
+            # The CG normalize flag is a fallback for direct calls without
+            # data_fidelity; the actual GS objective takes precedence.
+            if fidelity_scale is not None:
+                factor = fidelity_scale
+            else:
+                factor = config.data_weight
+                if config.normalize:
+                    factor /= measurement_size
             AT_y = op.adjoint(measurement) * factor
 
             def prox(x: torch.Tensor, tau: float) -> torch.Tensor:
@@ -414,7 +450,12 @@ class GSPnP(BasePnP[GSDenoiser]):
             STy, m = precompute_pcm_prox_terms(op, y=measurement)
 
             def prox(x: torch.Tensor, tau: float) -> torch.Tensor:
-                rho = 1.0 / tau
+                # WARNING: The closed-form PCM prox uses unscaled OLS.
+                # To realize prox_{tau f} for f = c * OLS, use rho = 1/(tau*c).
+                # Changing f and lambda by c and tau by 1/c preserves the
+                # complete GS-PnP gradient/proximal iteration.
+                scale = 1.0 if fidelity_scale is None else fidelity_scale
+                rho = 1.0 / (tau * scale)
                 return closed_form_pcm_prox_with_precomputed_terms(
                     op,
                     rho=rho,
@@ -459,6 +500,8 @@ class PCMDeepInvPhysics(DeepInvLinearPhysics[PhotocurrentMapOp]):
         verbose=False,
         **kwargs,
     ) -> torch.Tensor:
+        # CAUTION: DeepInv L2 uses unnormalized OLS; 1/gamma is relative
+        # to that fidelity scale and must be adjusted if it changes.
         return closed_form_pcm_prox(self.op, rho=1.0 / gamma, y=y, z=z)
 
 
@@ -480,7 +523,21 @@ class GSPnPDeepInv(BasePnP[GSDenoiser]):
         self.pgd: PGD | None = None
 
     def _build_pgd(self, config: GSPnPParameter) -> PGD:
-        """Build DeepInv PGD from the LION GS-PnP configuration."""
+        """Build DeepInv PGD using unnormalized half-squared L2 fidelity."""
+        fidelity = config.data_fidelity
+        # WARNING: DeepInv L2() below always uses 1/2 * ||A x - y||^2.
+        # Refuse inconsistent NormParameter settings instead of silently
+        # changing the objective without scaling lambda and the step size.
+        if (
+            not isinstance(fidelity, NormParameter)
+            or fidelity.ord != 2
+            or fidelity.normalize
+            or (fidelity.factor is not None and fidelity.factor != 0.5)
+        ):
+            raise ValueError(
+                "DeepInv GS-PnP requires unnormalized squared L2 fidelity "
+                "(NormParameter(ord=2, normalize=False, factor=None or 0.5))."
+            )
         stepsize = (
             config.stepsize if config.stepsize is not None else 1.0 / config.lambd
         )

@@ -32,6 +32,9 @@ class PnPADMMParameter(LIONParameter):
         iters: The number of iterations.
         prox: Configuration for the proximal operator for the data-fidelity term.
         sigma: The noise level for the denoiser.
+        CAUTION: rho (PCM) and eta (CG) are relative to the selected
+            data fidelity. If f -> c*f, also change the penalty by c
+            to preserve the fixed-denoiser ADMM iteration.
 
         lagged_iters: The number of lagged iterations.
         lagged_damping: The damping factor for the lagged iterations.
@@ -186,6 +189,8 @@ class PnPADMM(BasePnP[DenoiserT]):
 
         if isinstance(config, PCMProxParameter):
             assert isinstance(op, PhotocurrentMapOp), f"Got {type(op)}."
+            # CAUTION: This branch uses unnormalized OLS in the chosen A,y
+            # units. Raw-to-normalized Hadamard OLS also needs rho -> rho/n.
             ST_y, m = precompute_pcm_prox_terms(op, y=measurement)
             rho = config.rho
             assert rho is not None
@@ -198,17 +203,23 @@ class PnPADMM(BasePnP[DenoiserT]):
 
         elif isinstance(config, CGProxParameter):
 
-            # Normalize by number of measurements so that rho is independent of the measurement size
+            # WARNING: This CG branch solves c/2 * ||A x - y||^2 +
+            # config.eta/2 * ||x - z||^2, where c is defined below.
+            # If the fidelity is multiplied by a positive factor d,
+            # multiply config.eta by d to preserve its proximal map.
+            # The closed-form PCM branch uses c=1; its equivalent penalty is
+            # config.eta / c. The same numeric penalty can change the result.
             measurement_size = math.prod(
                 measurement.shape[d] for d in self.measurement_dims
             )
+            data_scale = config.data_weight
+            if config.normalize:
+                data_scale /= measurement_size
 
             def matmul_closure(q: torch.Tensor) -> torch.Tensor:
-                # return op.adjoint(op(q)) + rho * q
-                return op.adjoint(op(q)) / measurement_size + config.eta * q
+                return op.adjoint(op(q)) * data_scale + config.eta * q
 
-            # AT_y = op.adjoint(measurement)
-            AT_y = op.adjoint(measurement) / measurement_size
+            AT_y = op.adjoint(measurement) * data_scale
 
             def prox(z: torch.Tensor) -> torch.Tensor:
                 rhs = AT_y + config.eta * z

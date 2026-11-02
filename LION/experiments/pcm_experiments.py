@@ -110,6 +110,9 @@ class PCMExperimentParameter(LIONParameter):
         scaling: Parameters for scaling PCM data.
         sampling: Parameters for sub-sampling PCM data.
         uses_normalized_op: Whether to use a normalized PCM operator.
+            CAUTION: raw-to-normalized A,y divides OLS fidelity by n,
+            requiring rho_normalized=rho_raw/n for equivalent PnP updates.
+            This setting does not itself change a reconstructor penalty.
         noise: Parameters for the PCM noise simulation experiment.
         pnp_admm: Parameters for the PnP-ADMM reconstructor.
         precision_builder: Parameters for the precision builder.

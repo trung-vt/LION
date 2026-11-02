@@ -15,14 +15,21 @@ class PCMProxParameter(LIONParameter):
     """Configuration for the PCM data-fidelity proximal operator.
 
     Attributes:
-        rho: Positive quadratic penalty parameter.
+        rho: Positive quadratic penalty in the supplied A,y units.
+            CAUTION: for raw-to-normalized Hadamard OLS, rho_norm=rho_raw/n.
+            See scripts/experiments/pcm/README_FIDELITY_SCALING.md.
     """
 
     rho: float | None = None
 
 
 def pcm_prox_transform_rho(op: PhotocurrentMapOp, rho: float) -> float:
-    """Return rho / kappa, where the Hadamard transform has W W^T = kappa I."""
+    """Return rho/kappa for the chosen A,y units (W W^T = kappa I).
+
+    CAUTION: This internal transform factor does not convert an experiment's
+    rho between raw and normalized Hadamard measurement conventions.
+    For OLS such a conversion requires rho_norm = rho_raw/n.
+    """
     return rho if op.w.sqrt_n is not None else rho / op.num_pixels
 
 
@@ -63,6 +70,7 @@ def closed_form_pcm_prox(
     z_vectorized = op.vectorize(z)
     q = op.p(op.w(z_vectorized))
     m = op.s.gram(torch.ones_like(z_vectorized))
+    # CAUTION: External rho must already match the supplied A,y units.
     rho_transform = pcm_prox_transform_rho(op, rho)
     alpha = (op.s.adjoint(y) + rho_transform * q) / (m + rho_transform)
     x_vectorized = op.w.inv(op.p.adjoint(alpha))
@@ -106,7 +114,7 @@ def closed_form_pcm_prox_with_precomputed_terms(
         rho: Positive quadratic penalty parameter.
         ST_y: Reusable precomputed adjoint of the measurement vector.
         m_plus_rho: Reusable diagonal of S^T S plus the transform-domain
-            penalty rho / kappa (see pcm_prox_transform_rho).
+            penalty rho/kappa. This is not an external fidelity rescaling.
 
     Returns:
         The minimizer x* (same shape as z)

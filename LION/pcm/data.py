@@ -167,6 +167,10 @@ def prepare_data(
         #
         # The real differential measurement is in the unnormalised Hadamard
         # convention, so divide it by 2**J when using the normalised operator.
+        # CAUTION: This divides OLS fidelity by n=2**(2J), so matching raw
+        # OLS penalties require rho_normalized = rho_raw/n.
+        # For covariance-weighted WLS, consistent covariance scaling can
+        # instead leave the entire fidelity unchanged.
         if config.uses_normalized_op:
             measurement_vector = measurement_vector / (1 << j_order)
 

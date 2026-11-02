@@ -252,6 +252,9 @@ def prepare_sampling_run(
         run.trial.measurement,
         run.trial.device,
     )
+    # CAUTION: The PCM runner assumes normalized Hadamard measurements.
+    # Converting to raw OLS requires y -> sqrt(n)*y and rho -> n*rho
+    # to preserve fixed-denoiser PnP iterations. See PCM scaling README.
     assert config.uses_normalized_op
 
     target_2d = target.squeeze(0).squeeze(0)

@@ -116,6 +116,9 @@ class PnP(LIONReconstructor):
 
     def _solve_data_step(self, sino, z, weight, x0, cg_max_iter, cg_tol):
         """argmin_x ||A x - y||^2 / 2 + weight ||x - z||^2 / 2, by conjugate gradient."""
+        # CAUTION: This legacy path uses unnormalized OLS, unlike the
+        # PnPADMM CG default with fidelity divided by measurement count.
+        # Matching the data step requires scaling weight with the fidelity.
 
         def normal_operator(v: torch.Tensor) -> torch.Tensor:
             return self.op.adjoint(self.op(v)) + weight * v

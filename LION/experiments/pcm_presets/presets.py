@@ -80,6 +80,10 @@ from LION.utils.plot_helper import ColorParameter, PlotHelper, ZoomParameter
 #     ),
 # )
 
+# CAUTION: normalized Hadamard rows (by sqrt(n)) and mean OLS fidelity
+# (by m selected measurements) are different conventions.
+# With data_weight=1, CG normalize=True needs eta=rho_pcm/m to reproduce
+# the PCMProx data update with penalty rho_pcm, at fixed A and y.
 DEFAULT_CG = CGProxParameter(
     iters=20,
     eta=0.01,
@@ -89,6 +93,9 @@ DEFAULT_CG = CGProxParameter(
     # normalize=False,
 )
 
+# CAUTION: PnP penalty settings refer to normalized Hadamard A and y.
+# An OLS switch to raw rows must also scale y by sqrt(n) and rho by n.
+# The active DeepInv GS prior uses unnormalized half-squared L2.
 QUICK_METHODS = {
     # # "pnp_admm_drunet_cg": PnPADMMParameter(
     # #     denoiser=DenoiserParameter(name="drunet"), iters=50, prox=DEFAULT_CG, sigma=0.05
