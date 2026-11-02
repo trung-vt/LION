@@ -52,6 +52,13 @@ def _fixture(tmp_path):
             "preset": "PCMNoiseSimulation.npl_default",
             "current_to_model_scale": 1.0 / 3.5e-8,
             "repeat_acquisitions": 1,
+            "signal_to_bias_ratio": 0.3,
+            "beam_ar": [-0.9221, -0.1709, -0.0769, -0.0354],
+            "beam_ma": [0.0377, -0.3669],
+            "beam_sigma": 1.2e-4,
+            "bias_sigma": 2.9e-5,
+            "bias_gradient_sigma": 1.6e-7,
+            "dark_sigma": 3.61e-7 * (1.0 / 3.5e-8) / 256,
         },
         "precision": {"acquisition_compute_dtype": "float64"},
     }

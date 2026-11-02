@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import io
 import json
 import os
 import tempfile
@@ -20,12 +21,52 @@ from PIL import Image
 
 from LION.pcm.noise import PCMNoiseSimulation
 from LION.pcm.simulation import (
-    PCMAcquisition, acquisition_from_prepared_measurement, simulate_pcm_acquisition,
+    PCMAcquisition,
+    acquisition_from_prepared_measurement,
+    simulate_pcm_acquisition,
 )
+from LION.pcm_tools.ordering import normal_to_dyadic_permutation
 from LION.pcm_tools.pcm_sampling import sample_indices
 
 
 ARCHIVE_SCHEMA = "pcm-float64-swaps-v1"
+# SHA-256 of the canonical j=8 dyadic permutation in little-endian int64.
+# Pinning this mapping also protects the original immutable archive, whose
+# per-image metadata predates the operator-row digest.
+PINNED_DYADIC_ORDER_SHA256 = (
+    "b78c3dfd0d35d70366082c27f00d071631e827328eb28e87c9c36a127fac105c"
+)
+
+LOCKED_NOISE_KEYS = (
+    "beam_ar",
+    "beam_ma",
+    "beam_sigma",
+    "bias_sigma",
+    "bias_gradient_sigma",
+    "dark_sigma",
+    "signal_to_bias_ratio",
+    "current_to_model_scale",
+    "repeat_acquisitions",
+)
+
+
+def require_locked_noise_settings(settings):
+    """Require every numerical setting before starting a seeded acquisition."""
+    missing = [key for key in LOCKED_NOISE_KEYS if key not in settings]
+    if missing:
+        raise ValueError(f"Missing locked noise parameters: {missing}")
+
+
+def operator_rows_sha256(op, indices):
+    """Check the canonical dyadic row permutation and the actual operator rows."""
+    order = np.asarray(normal_to_dyadic_permutation(8), dtype="<i8")
+    if hashlib.sha256(order.tobytes()).hexdigest() != PINNED_DYADIC_ORDER_SHA256:
+        raise ValueError("Canonical Hadamard dyadic row order has changed")
+    selected = order[np.asarray(indices, dtype=np.int64)].astype("<u2")
+    actual = op.sp.indices.detach().cpu().numpy().astype("<u2")
+    if not np.array_equal(actual, selected):
+        raise ValueError("Reconstructed operator has different Hadamard rows")
+    return hashlib.sha256(selected.tobytes()).hexdigest()
 
 
 def _sha256(path: Path) -> str:
@@ -51,10 +92,14 @@ def create_float64_acquisition(
     data = protocol["data"]
     sampling = protocol["sampling"]
     noise_settings = protocol["noise"]
+    require_locked_noise_settings(noise_settings)
     if protocol["precision"]["acquisition_compute_dtype"] != "float64":
         raise ValueError("The master acquisition must use float64")
-    if (sampling["j_order"], sampling["sampling_scheme"],
-        sampling.get("multilevel_alpha", 1.0)) != (8, "multilevel", 1.0):
+    if (
+        sampling["j_order"],
+        sampling["sampling_scheme"],
+        sampling.get("multilevel_alpha", 1.0),
+    ) != (8, "multilevel", 1.0):
         raise ValueError("Expected the locked J=8 multilevel alpha=1 protocol")
 
     image_path = Path(data["root"]) / row["source_relpath"]
@@ -83,7 +128,7 @@ def create_float64_acquisition(
         "signal_to_bias_ratio": noise.signal_to_bias_ratio,
     }
     for key, value in actual_noise.items():
-        if key in noise_settings and json.dumps(value) != json.dumps(noise_settings[key]):
+        if json.dumps(value) != json.dumps(noise_settings[key]):
             raise ValueError(f"Noise preset differs from locked parameter: {key}")
     if noise_settings["preset"] != "PCMNoiseSimulation.npl_default":
         raise ValueError("This experiment uses the locked NPL default preset")
@@ -101,6 +146,9 @@ def create_float64_acquisition(
         raise AssertionError("PCM acquisition lost float64 precision")
     metadata = {
         "archive_schema": ARCHIVE_SCHEMA,
+        "sp_indices_sha256": operator_rows_sha256(acquisition.op, indices),
+        "mask_seed_decimal": str(mask_seed),
+        "noise_seed_decimal": str(noise_seed),
         "protocol_id": protocol["protocol_id"],
         "split": row["split"],
         "category": row["category"],
@@ -137,7 +185,10 @@ def _write_atomic_new(path: Path, writer) -> None:
     temporary = None
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w+b", dir=path.parent, prefix="." + path.name + ".", suffix=".tmp",
+            mode="w+b",
+            dir=path.parent,
+            prefix="." + path.name + ".",
+            suffix=".tmp",
             delete=False,
         ) as handle:
             temporary = Path(handle.name)
@@ -147,6 +198,12 @@ def _write_atomic_new(path: Path, writer) -> None:
         temporary.chmod(0o444)
         # Same-filesystem hard-link publication is atomic and fails if the target exists.
         os.link(temporary, path)
+        # Persist the directory entry as well as the file before publication.
+        descriptor = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
@@ -161,7 +218,9 @@ def write_json_new(path: Path, value: dict) -> None:
 def _validate_arrays(y, indices, i0, packed, metadata):
     """Validate the versioned single-image archive and decode its audit flags."""
     if metadata.get("archive_schema") != ARCHIVE_SCHEMA:
-        raise ValueError("Not a Step 2 swap-aware master archive (old pilot is retained separately)")
+        raise ValueError(
+            "Not a Step 2 swap-aware master archive (old pilot is retained separately)"
+        )
     m = int(metadata["measurements"])
     repeats = int(metadata["repeat_acquisitions"])
     if m <= 0 or repeats <= 0 or y.shape != (1, 1, m):
@@ -174,7 +233,9 @@ def _validate_arrays(y, indices, i0, packed, metadata):
         raise ValueError("Stored external dyadic indices must be uint16 of length M")
     idx = indices.astype(np.int64)
     if len(np.unique(idx)) != m or np.any(idx[1:] <= idx[:-1]):
-        raise ValueError("Indices must be unique and in acquisition order (ascending dyadic rows)")
+        raise ValueError(
+            "Indices must be unique and in acquisition order (ascending dyadic rows)"
+        )
     if metadata.get("j_order") != 8 or metadata.get("normalization_factor") != 1 / 256:
         raise ValueError("Unexpected Hadamard order or normalisation")
     coarse = 4 ** int(metadata["coarse_j"])
@@ -196,46 +257,90 @@ def save_master_npz(path: Path, acquisition: PCMAcquisition, metadata: dict) -> 
     """Store float64 measurements and the actual swap flags, without overwriting."""
     y = acquisition.measurement.detach().cpu().numpy()
     indices = np.asarray(acquisition.sampled_indices)
-    if not np.issubdtype(indices.dtype, np.integer) or np.any((indices < 0) | (indices >= 65536)):
+    if not np.issubdtype(indices.dtype, np.integer) or np.any(
+        (indices < 0) | (indices >= 65536)
+    ):
         raise ValueError("External dyadic indices cannot be represented as uint16")
     if acquisition.i0 is None or acquisition.swap_flags is None:
         raise ValueError("The noisy master requires I0 and recorded swap flags")
     i0 = acquisition.i0.detach().cpu().numpy()
     flags = acquisition.swap_flags.detach().cpu().numpy()
-    expected_shape = (1, 1, int(metadata["repeat_acquisitions"]), int(metadata["measurements"]))
+    expected_shape = (
+        1,
+        1,
+        int(metadata["repeat_acquisitions"]),
+        int(metadata["measurements"]),
+    )
     if flags.dtype != np.bool_ or flags.shape != expected_shape:
         raise ValueError("Expected boolean swap flags for every repeat and measurement")
     packed = np.packbits(flags.reshape(expected_shape[-2:]), axis=-1, bitorder="little")
     indices = indices.astype(np.uint16)
     _validate_arrays(y, indices, i0, packed, metadata)
-    _write_atomic_new(path, lambda handle: np.savez_compressed(
-        handle, measurement=y, sampled_indices=indices, i0=i0,
-        swap_flags_packed=packed, metadata_json=json.dumps(metadata, sort_keys=True),
-    ))
+    _write_atomic_new(
+        path,
+        lambda handle: np.savez_compressed(
+            handle,
+            measurement=y,
+            sampled_indices=indices,
+            i0=i0,
+            swap_flags_packed=packed,
+            metadata_json=json.dumps(metadata, sort_keys=True),
+        ),
+    )
 
 
 def load_master_npz(
-    path: Path, *, expected_sha256: str | None = None, device: str | torch.device = "cpu",
+    path: Path,
+    *,
+    expected_sha256: str | None = None,
+    device: str | torch.device = "cpu",
 ) -> tuple[PCMAcquisition, dict]:
     """Load the identical stored A and y; never regenerate noise or recast the master."""
-    if expected_sha256 is not None and _sha256(path) != expected_sha256:
+    # Check and decode the very same bytes, avoiding a hash/read race.
+    raw = Path(path).read_bytes()
+    if (
+        expected_sha256 is not None
+        and hashlib.sha256(raw).hexdigest() != expected_sha256
+    ):
         raise ValueError(f"Acquisition checksum mismatch: {path}")
-    with np.load(path, allow_pickle=False) as data:
+    with np.load(io.BytesIO(raw), allow_pickle=False) as data:
         metadata = json.loads(str(data["metadata_json"]))
-        y, indices, i0, packed = (data[k] for k in (
-            "measurement", "sampled_indices", "i0", "swap_flags_packed",
-        ))
+        y, indices, i0, packed = (
+            data[k]
+            for k in (
+                "measurement",
+                "sampled_indices",
+                "i0",
+                "swap_flags_packed",
+            )
+        )
     flags = _validate_arrays(y, indices, i0, packed, metadata)
     acquisition = acquisition_from_prepared_measurement(
-        torch.from_numpy(y), j_order=8,
-        sampled_indices=indices.astype(np.int64), device=device,
+        torch.from_numpy(y),
+        j_order=8,
+        sampled_indices=indices.astype(np.int64),
+        device=device,
         seed=int(metadata["noise_seed_uint64"]),
     )
-    return replace(acquisition, i0=torch.from_numpy(i0).to(device),
-                   swap_flags=torch.from_numpy(flags)), metadata
+    row_digest = operator_rows_sha256(acquisition.op, indices)
+    recorded_digest = metadata.get("sp_indices_sha256")
+    if recorded_digest is not None and row_digest != recorded_digest:
+        raise ValueError("Saved Hadamard row digest differs from reconstructed A")
+    # Legacy v1 NPZs have no per-image row digest; the pinned canonical order
+    # above still detects an operator-permutation change.
+    return (
+        replace(
+            acquisition,
+            i0=torch.from_numpy(i0).to(device),
+            swap_flags=torch.from_numpy(flags),
+        ),
+        metadata,
+    )
 
 
-def solver_measurement(acquisition: PCMAcquisition, *, dtype: torch.dtype) -> torch.Tensor:
+def solver_measurement(
+    acquisition: PCMAcquisition, *, dtype: torch.dtype
+) -> torch.Tensor:
     """Cast only the completed differential measurement at the solver boundary."""
     # A float64 solver also receives an independent copy, not the master tensor.
     return acquisition.measurement.to(dtype=dtype).clone()
@@ -245,7 +350,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--protocol", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--split", choices=("validation", "test"), default="validation")
+    # Held-out test acquisition generation is deliberately not exposed in Step 2.
+    parser.add_argument("--split", choices=("validation",), default="validation")
     parser.add_argument("--category", required=True)
     parser.add_argument("--permutation-position", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -258,7 +364,8 @@ def main() -> None:
     if _sha256(args.manifest) != protocol["data"]["manifest_sha256"]:
         raise ValueError("Step 1 image and seed manifest was modified")
     selected = [
-        row for row in rows
+        row
+        for row in rows
         if row["split"] == args.split
         and row["category"] == args.category
         and int(row["permutation_position_1based"]) == args.permutation_position

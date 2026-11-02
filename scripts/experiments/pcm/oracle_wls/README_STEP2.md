@@ -75,3 +75,71 @@ were restored byte-for-byte from the audited `review_export.tar.gz` snapshot
 and committed with the Black hook skipped once. This preserves strict source
 hash checks during replay. Do not reformat these three frozen-source files
 without creating a new, explicitly versioned acquisition protocol.
+
+
+## Reviewer follow-up (2 November 2026)
+
+The review of Step 2 identified five main guard gaps. These are now addressed
+in experiment-specific acquisition code. Shared PCM numerical code is unchanged.
+The new focused regression module is test_oracle_wls_step2_review_followup.py.
+
+1. Manifest integrity: build writes SHA256SUMS covering manifest, protocol, source
+   manifest and all NPZ files. Plain verify checks each digest. Build prints
+   EXTERNAL_MANIFEST_SHA256. Keep that hash outside the archive and supply the
+   --expected-manifest-sha256 option when independent anchoring is required.
+   Internal checks alone cannot detect a coordinated edit to the manifest and
+   the sidecar.
+2. Hadamard identity: CODE_FILES includes LION/pcm_tools/ordering.py, while
+   execution metadata records the spyrit version. Each new NPZ records the SHA
+   of actual selected Hadamard row indices; loading verifies the same rows and
+   a fixed SHA of the canonical dyadic j=8 ordering. Historical NPZ files have
+   no per-image row digest, but the canonical row check still applies.
+3. Noise consistency: verify compares the entire locked noise-parameter
+   dictionary to the stored metadata, including expected keys.
+4. Locked parameters: even single-case creation rejects missing NPL numeric
+   noise keys before simulating.
+5. Held-out isolation: the one-case CLI accepts validation only; the archive
+   verifier rejects all files or directories inside the test folder.
+
+Additional protections: same-bytes hash/load, fsync of directory publication,
+decimal-string seed copies, and a loader by category and sample ID that checks
+the checksum sidecar plus the individual file digest.
+
+### Version history and frozen outputs
+
+- Original immutable archive: acquisitions_v2/; original manifest SHA:
+  96ae46bd96572cdd2d62523b43365cb32ca3b290d9a174203230c78a6785671f.
+- Intermediate reviewer preflight: acquisitions_v4_reviewed/ (separate).
+- Final reviewed archive: acquisitions_v5_reviewed_final/; manifest SHA:
+  b30ff71a305bead9edda34b34200ca509a7654d7825d333d68ff9231f907ebac.
+
+The saved measurement y, indices, bias i0 and swap bits of the final archive
+are checked byte-for-byte against all 50 original validation acquisitions.
+Metadata and compressed NPZ file hashes are different because guards were added.
+Neither the original source image dataset nor the frozen acquisition archive
+was modified.
+
+The original archive's strict replay checks source SHA-256. Running that replay
+with newer, updated source code can fail the intended provenance check. Use
+the historical source snapshot to replay old data; plain checksums continue to
+work with the historical archive.
+
+### Verification
+
+From the LION root with existing LION_DATA_PATH and LION_TTV22_PATH:
+
+~~~bash
+python -m scripts.experiments.pcm.oracle_wls.acquisition_archive verify   --root /store/LION/ttv22/pcm/results/pcm/pcm_oracle_wls_vs_ols_20261102/acquisitions_v5_reviewed_final   --expected-manifest-sha256 b30ff71a305bead9edda34b34200ca509a7654d7825d333d68ff9231f907ebac
+
+python -m pytest -q -o addopts='' -p no:cacheprovider   pytests/pcm/test_oracle_wls_step2_review_followup.py   pytests/pcm/test_oracle_wls_storage.py   pytests/pcm/test_oracle_wls_float64_acquisition.py
+~~~
+
+126 tests passed across the 11-file relevant CPU regression suite.
+50/50 GPU replay and CPU comparison passed with max difference
+2.2737367544323206e-13. No full-repository test was claimed.
+
+The optional chmod-0555 directory rule was not added: directory modes do not
+give cryptographic authenticity and would complicate verification writebacks.
+The checksums and separately pinned manifest are a stronger audit control.
+The 4070 and 50-case split remain intentionally locked for this study.
+No oracle weights or held-out test measurements were generated here.
