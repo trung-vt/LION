@@ -19,11 +19,14 @@ import numpy as np
 
 from scripts.experiments.pcm.oracle_wls.compare_ols_wls_step6 import (
     CALIBRATION_MANIFEST_SHA256,
-    COMPARISONS,
     ORDERED_CATEGORIES,
     SCHEMA,
-    metrics_for_image,
-    summarize_results,
+    metrics_for_image,  # retained for old callers; NOT used in verification
+    summarize_results,  # retained for old callers; NOT used in verification
+)
+from scripts.experiments.pcm.oracle_wls.independent_step6_checks import (
+    independent_summaries,
+    numerical_metrics,
 )
 from scripts.experiments.pcm.oracle_wls.float64_acquisition import (
     _sha256,
@@ -188,19 +191,29 @@ def validate_outputs(
             if not np.isfinite(im).all():
                 raise ValueError("Non-finite reconstruction")
             if recompute_metrics:
-                fresh = metrics_for_image(torch.from_numpy(im), clean)
+                fresh = numerical_metrics(im, clean.reshape(256, 256).cpu().numpy())
                 for metric in ("mse", "psnr", "ssim", "haarpsi"):
+                    # NumPy computes PSNR from a float64 MSE, whereas
+                    # torchmetrics reports a float32 quantity. Across the
+                    # original 200 verified reconstructions their maximum
+                    # roundoff difference was 4.54e-6 dB.
+                    tolerance = {
+                        "mse": 1e-9,
+                        "psnr": 1e-5,
+                        "ssim": 5e-7,
+                        "haarpsi": 5e-7,
+                    }[metric]
                     if not np.isclose(
                         fresh[metric],
                         item["metrics"][metric],
                         rtol=0,
-                        atol=5e-7,
+                        atol=tolerance,
                     ):
                         raise ValueError(
                             f"Recomputed {metric} differs for {key}/{mode}"
                         )
                 checks += 1
-    rows, summary = summarize_results(cases)
+    summary = independent_summaries(cases)
     # The reconstruction timestamps are excluded from reproducible summary.
     if summary != manifest["summary"]:
         raise ValueError("Paired summary / paired bootstrap does not regenerate")
@@ -208,7 +221,7 @@ def validate_outputs(
         raise ValueError("Summary sidecar inconsistent with manifest")
     # Single-source evidence from the pilot is checked independently.
     pilot_cases = cases[:10]
-    _, pilot_summary = summarize_results(pilot_cases)
+    pilot_summary = independent_summaries(pilot_cases)
     if json.loads((root / "pilot_summary.json").read_text()) != pilot_summary:
         raise ValueError("Pilot summary does not match predeclared first ten images")
     return {
