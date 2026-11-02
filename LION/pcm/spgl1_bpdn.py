@@ -115,6 +115,10 @@ class SPGL1BPDNDiagnostics:
     feasible_with_tolerance: bool
     solver_status_name: str = "unknown"
     solver_converged: bool = False
+    # SPGL1 root_found only checks the residual constraint, not optimality.
+    # rgap is SPGL1's own relative duality-gap diagnostic for the L1 subproblem.
+    relative_duality_gap: float | None = None
+    spgl1_l1_ball_radius: float | None = None
     coefficient_l1_norm: float = 0.0
     coefficient_nnz_at_1e_minus_5: int = 0
     lambda_equivalent: float | None = None
@@ -226,6 +230,8 @@ def spgl1_bpdn_torch(
         feasible_with_tolerance=bool(feasible),
         solver_status_name=SPGL1_STATUS_NAMES.get(status, "unknown"),
         solver_converged=status in (1, 2, 4),
+        relative_duality_gap=(float(info["rgap"]) if "rgap" in info else None),
+        spgl1_l1_ball_radius=(float(info["tau"]) / factor if "tau" in info else None),
         coefficient_l1_norm=float(torch.linalg.vector_norm(coefficients, ord=1)),
         coefficient_nnz_at_1e_minus_5=int(
             torch.count_nonzero(coefficients.abs() > 1e-5)

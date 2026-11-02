@@ -80,6 +80,8 @@ def validate_outputs(
     *,
     expected_manifest_sha256,
     recompute_metrics=True,
+    expected_solver_iterations=120,
+    expected_solver_opt_tol=1e-3,
 ):
     """Check fixed 50-pair experiment and optionally recalculate all metrics."""
     acq, weights, calibration, root = map(
@@ -106,8 +108,8 @@ def validate_outputs(
     if manifest["solver"] != {
         "backend": "original LION/pcm/spgl1_bpdn.py with existing spgl1_torch",
         "device": "cpu",
-        "max_iterations": 120,
-        "opt_tol": 1e-3,
+        "max_iterations": expected_solver_iterations,
+        "opt_tol": expected_solver_opt_tol,
         "factor": 1,
         "debias": False,
         "master_data_dtype": "float64",
@@ -233,6 +235,8 @@ def main():
     p.add_argument("--output", required=True, type=Path)
     p.add_argument("--expected-step6-manifest-sha256", required=True)
     p.add_argument("--skip-metric-recompute", action="store_true")
+    p.add_argument("--expected-solver-iterations", type=int, default=120)
+    p.add_argument("--expected-solver-opt-tol", type=float, default=1e-3)
     args = p.parse_args()
     torch.set_num_threads(2)
     result = validate_outputs(
@@ -242,6 +246,8 @@ def main():
         args.output,
         expected_manifest_sha256=args.expected_step6_manifest_sha256,
         recompute_metrics=not args.skip_metric_recompute,
+        expected_solver_iterations=args.expected_solver_iterations,
+        expected_solver_opt_tol=args.expected_solver_opt_tol,
     )
     print(json.dumps(result, indent=2))
 

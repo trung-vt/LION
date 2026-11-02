@@ -104,6 +104,13 @@ def load_step5_case(
 ) -> Step5Case:
     """Load the same frozen A,y and matching oracle D; do not load ground truth."""
     source, weight_dir = Path(acquisitions_root), Path(weights_root)
+    # Even when the caller already checked all 50 cases, always check the
+    # independently pinned archive manifests. This is inexpensive and closes
+    # the coherent NPZ+manifest+SHA256SUMS mutation route.
+    if _sha256(source / "manifest.json") != ACQUISITION_MANIFEST_SHA256:
+        raise ValueError("Externally anchored acquisition manifest differs")
+    if _sha256(weight_dir / "manifest.json") != WEIGHT_MANIFEST_SHA256:
+        raise ValueError("Externally anchored weight manifest differs")
     if verify_all:
         validate_frozen_archives(source, weight_dir)
     acquisitions = json.loads((source / "manifest.json").read_text())["acquisitions"]
@@ -182,6 +189,23 @@ def load_calibration_record(root, category, sample_id, *, expected_manifest_sha2
     manifest = json.loads((root / "manifest.json").read_text())
     if manifest["schema"] != CALIBRATION_SCHEMA:
         raise ValueError("Unexpected residual-calibration schema")
+    if manifest.get("status") != "complete":
+        raise ValueError("Residual calibration is incomplete")
+    records = manifest.get("cases", [])
+    if not isinstance(records, list) or manifest.get("number_of_cases") != len(records):
+        raise ValueError("Residual calibration case count differs from manifest")
+    if manifest.get("all_per_case_coverage_in_predeclared_gate") is not True:
+        raise ValueError("Residual calibration coverage gate did not pass")
+    # The production archives have 50 validation cases. One-case disposable
+    # test fixtures use independently generated, different source anchors.
+    if (
+        manifest.get("weight_manifest_sha256")
+        == "50bf26f3dc136adb71513fd3d83e83b24c9bea95ff62229d2fb15ed5248994d1"
+        and len(records) != 50
+    ):
+        raise ValueError(
+            "Production residual calibration needs all 50 validation cases"
+        )
     if (
         manifest["acquisition_manifest_sha256"] != ACQUISITION_MANIFEST_SHA256
         or manifest["weight_manifest_sha256"] != WEIGHT_MANIFEST_SHA256
@@ -231,7 +255,12 @@ def solve_step5_case(
     )
     y_master = acquired.measurement.reshape(-1)
     y32 = y_master.to(dtype=SOLVER_DTYPE).clone()
-    rhs = y32 * op.inverse_std if method == "wls" else y32
+    # Weighted y is formed in float64 before its one-time solver conversion.
+    rhs = (
+        (y_master * case.inverse_std64).to(dtype=SOLVER_DTYPE)
+        if method == "wls"
+        else y32
+    )
     coefficients, report = spgl1_bpdn_torch(
         op,
         rhs,
@@ -242,13 +271,11 @@ def solve_step5_case(
         verbosity=0,
     )
     reconstructed = wavelet.inverse(coefficients)
-    raw_residual = acquired.op(reconstructed).reshape(-1) - y32
+    # Recompute physical and weighted residuals in float64, matching the
+    # original frozen y and the float64 calibration definition.
+    raw_residual = acquired.op(reconstructed.to(torch.float64)).reshape(-1) - y_master
     ols_norm = float(torch.linalg.vector_norm(raw_residual))
-    wls_norm = float(
-        torch.linalg.vector_norm(
-            raw_residual * case.inverse_std64.to(dtype=SOLVER_DTYPE)
-        )
-    )
+    wls_norm = float(torch.linalg.vector_norm(raw_residual * case.inverse_std64))
     selected = wls_norm if method == "wls" else ols_norm
     info = {
         **report.to_dict(),
@@ -281,6 +308,7 @@ def main():
     parser.add_argument("--sample-id", type=int, required=True)
     parser.add_argument("--method", choices=["ols", "wls"], required=True)
     parser.add_argument("--iters", type=int, default=120)
+    parser.add_argument("--opt-tol", type=float, default=1e-3)
     args = parser.parse_args()
     torch.set_num_threads(2)
     case = load_step5_case(
@@ -297,6 +325,7 @@ def main():
         method=args.method,
         epsilon=rec[f"epsilon_{args.method}_95"],
         iters=args.iters,
+        opt_tol=args.opt_tol,
     )
     print(json.dumps(info, indent=2))
 

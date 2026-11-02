@@ -13,6 +13,8 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib.metadata
+import platform
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -190,6 +192,10 @@ def build_calibration(
     acquisition_manifest = json.loads((source / "manifest.json").read_text())
     weight_manifest = json.loads((weights / "manifest.json").read_text())
     protocol = json.loads((source / "protocol.json").read_text())
+    if protocol["noise"].get("repeat_acquisitions") != 1:
+        raise ValueError(
+            "Step 5 Monte Carlo draws assume exactly one acquisition repeat"
+        )
     cases = acquisition_manifest["acquisitions"]
     if len(cases) != 50 or acquisition_manifest["test_count"] != 0:
         raise ValueError("Step 5 calibration expects the frozen validation split")
@@ -257,6 +263,36 @@ def build_calibration(
             "will perform the matched reconstruction benchmark."
         ),
         "code_sha256": _sha256(Path(__file__)),
+        "execution_provenance": {
+            "capture": "at calibration generation time, for new versioned archives",
+            "python_version": platform.python_version(),
+            "library_versions": {
+                package: importlib.metadata.version(package)
+                for package in (
+                    "numpy",
+                    "scipy",
+                    "statsmodels",
+                    "torch",
+                    "spgl1",
+                    "PyWavelets",
+                    "Pillow",
+                )
+            },
+            "source_sha256": {
+                path: _sha256(Path(path))
+                for path in (
+                    "LION/pcm_tools/noise_generate.py",
+                    "LION/pcm/simulation.py",
+                    "LION/pcm/noise.py",
+                    "LION/operators/PhotocurrentMapOp.py",
+                    "scripts/experiments/pcm/oracle_wls/float64_acquisition.py",
+                    "scripts/experiments/pcm/oracle_wls/monte_carlo_validate.py",
+                    "scripts/experiments/pcm/oracle_wls/oracle_variance.py",
+                    "scripts/experiments/pcm/oracle_wls/calibrate_residual_bounds.py",
+                )
+            },
+            "repeated_acquisitions_assumed": 1,
+        },
         "cases": records,
     }
     write_json_new(dest / "manifest.json", manifest)
