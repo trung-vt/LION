@@ -21,6 +21,11 @@ class PCMProxParameter(LIONParameter):
     rho: float | None = None
 
 
+def pcm_prox_transform_rho(op: PhotocurrentMapOp, rho: float) -> float:
+    """Return rho / kappa, where the Hadamard transform has W W^T = kappa I."""
+    return rho if op.w.sqrt_n is not None else rho / op.num_pixels
+
+
 def closed_form_pcm_prox(
     op: PhotocurrentMapOp, *, rho: float, y: torch.Tensor, z: torch.Tensor
 ) -> torch.Tensor:
@@ -34,24 +39,17 @@ def closed_form_pcm_prox(
 
         A_PCM = S P W,
 
-    and W is the normalized Walsh-Hadamard transform, P is a permutation, and S is a row-selection operator.
+    W is a normalized or raw Walsh-Hadamard transform, P is a
+    permutation, and S selects rows. Write W W^T = kappa I,
+    with kappa = 1 for normalized W and kappa = n for raw W.
+    In transform coordinates q = P W z and m = diag(S^T S),
 
-    Since PW is orthogonal, define
+        rho_transform = rho / kappa,
+        alpha = (S^T y + rho_transform q) / (m + rho_transform).
 
-        q = P W z,
-        m = diag(S^T S).
+    The division is componentwise. The image-domain result is
 
-    Then the solution in the transform domain is
-
-        alpha_i = ((S^T y)_i + rho q_i) / (m_i + rho),
-
-    or equivalently
-
-        alpha = (S^T y + rho q) / (m + rho),
-
-    with the division taken componentwise. The image-domain solution is
-
-        x* = W^T P^T alpha.
+        x* = W^{-1} P^T alpha.
 
     Args:
         op: Photocurrent map operator containing S, P, and W.
@@ -65,8 +63,9 @@ def closed_form_pcm_prox(
     z_vectorized = op.vectorize(z)
     q = op.p(op.w(z_vectorized))
     m = op.s.gram(torch.ones_like(z_vectorized))
-    alpha = (op.s.adjoint(y) + rho * q) / (m + rho)
-    x_vectorized = op.w.adjoint(op.p.adjoint(alpha))
+    rho_transform = pcm_prox_transform_rho(op, rho)
+    alpha = (op.s.adjoint(y) + rho_transform * q) / (m + rho_transform)
+    x_vectorized = op.w.inv(op.p.adjoint(alpha))
     return op.unvectorize(x_vectorized)
 
 
@@ -106,7 +105,8 @@ def closed_form_pcm_prox_with_precomputed_terms(
         z: Input image to the proximal update.
         rho: Positive quadratic penalty parameter.
         ST_y: Reusable precomputed adjoint of the measurement vector.
-        m_plus_rho: Reusable diagonal of the Gram matrix S^T S plus the penalty parameter.
+        m_plus_rho: Reusable diagonal of S^T S plus the transform-domain
+            penalty rho / kappa (see pcm_prox_transform_rho).
 
     Returns:
         The minimizer x* (same shape as z)
@@ -119,9 +119,10 @@ def closed_form_pcm_prox_with_precomputed_terms(
     q = op.p(wz)
     # q = op.p(op.w(z_vectorized))  # THIS STEP PRODUCES NaN VALUES
     # debug_value(q, "q")
-    alpha = (ST_y + rho * q) / m_plus_rho
+    rho_transform = pcm_prox_transform_rho(op, rho)
+    alpha = (ST_y + rho_transform * q) / m_plus_rho
     # debug_value(alpha, "alpha")
-    x_vectorized = op.w.adjoint(op.p.adjoint(alpha))
+    x_vectorized = op.w.inv(op.p.adjoint(alpha))
     # debug_value(x_vectorized, "x_vectorized")
     return op.unvectorize(x_vectorized)
 

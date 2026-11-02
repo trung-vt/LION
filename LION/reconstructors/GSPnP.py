@@ -23,6 +23,7 @@ from LION.pcm_tools.pcm_prox import (
     PCMProxParameter,
     closed_form_pcm_prox,
     closed_form_pcm_prox_with_precomputed_terms,
+    pcm_prox_transform_rho,
     precompute_pcm_prox_terms,
 )
 from LION.reconstructors.BasePnP import BasePnP, DenoiserParameter
@@ -415,7 +416,11 @@ class GSPnP(BasePnP[GSDenoiser]):
             def prox(x: torch.Tensor, tau: float) -> torch.Tensor:
                 rho = 1.0 / tau
                 return closed_form_pcm_prox_with_precomputed_terms(
-                    op, rho=rho, z=x, ST_y=STy, m_plus_rho=m + rho
+                    op,
+                    rho=rho,
+                    z=x,
+                    ST_y=STy,
+                    m_plus_rho=m + pcm_prox_transform_rho(op, rho),
                 )
 
         else:

@@ -16,6 +16,7 @@ from LION.operators.PhotocurrentMapOp import PhotocurrentMapOp
 from LION.pcm_tools.pcm_prox import (
     PCMProxParameter,
     closed_form_pcm_prox_with_precomputed_terms,
+    pcm_prox_transform_rho,
     precompute_pcm_prox_terms,
 )
 from LION.reconstructors.BasePnP import BasePnP, DenoiserParameter, DenoiserT
@@ -188,7 +189,7 @@ class PnPADMM(BasePnP[DenoiserT]):
             ST_y, m = precompute_pcm_prox_terms(op, y=measurement)
             rho = config.rho
             assert rho is not None
-            m_plus_rho = m + rho
+            m_plus_rho = m + pcm_prox_transform_rho(op, rho)
 
             def prox(z: torch.Tensor) -> torch.Tensor:
                 return closed_form_pcm_prox_with_precomputed_terms(
