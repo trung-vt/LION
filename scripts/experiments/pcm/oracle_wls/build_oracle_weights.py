@@ -250,8 +250,21 @@ def verify_weights(
         raise ValueError("Externally anchored Step 3 manifest hash mismatch")
     manifest = json.loads((out / "manifest.json").read_text())
     metadata = json.loads((out / "protocol.json").read_text())
+    # The protocol must agree with the version pinned when this weight archive
+    # was created. Updating the sidecar alone must not hide a changed protocol.
+    if _sha256(out / "protocol.json") != manifest["protocol_sha256"]:
+        raise ValueError("Step 3 protocol checksum differs from weight manifest")
+    if (
+        manifest["schema"] != STEP3_SCHEMA
+        or metadata["schema"] != STEP3_SCHEMA
+        or metadata["diagonal_only"] is not True
+        or metadata["full_covariance_included"] is not False
+    ):
+        raise ValueError("Step 3 oracle protocol or covariance convention changed")
     if metadata["source_manifest_sha256"] != expected_acquisition_manifest_sha256:
         raise ValueError("Step 3 source manifest identity differs")
+    if metadata["source_protocol_sha256"] != _sha256(source / "protocol.json"):
+        raise ValueError("Step 3 acquisition protocol identity differs")
     cases = json.loads((source / "manifest.json").read_text())["acquisitions"]
     lookup = {(c["category"], c["sample_id"]): c for c in cases}
     if len(manifest["files"]) != 50 or set(lookup) != {
@@ -320,6 +333,15 @@ def verify_weights(
             for key in RECORD_KEYS:
                 if arrays[key].tobytes() != expected[key].tobytes():
                     raise AssertionError(f"Oracle analytic regeneration differs: {key}")
+    # Internal file and manifest checksums are not an independent trust
+    # anchor. Without an externally saved weight-manifest digest, recompute
+    # every analytic weight before reporting a successful verification.
+    # Check the per-case source bindings first so swaps are reported precisely.
+    if expected_weight_manifest_sha256 is None and not recompute:
+        raise ValueError(
+            "Weight verification requires an external manifest SHA256 "
+            "or analytical recomputation (recompute=True)"
+        )
     return {
         "status": "PASS",
         "verified_cases": len(manifest["files"]),

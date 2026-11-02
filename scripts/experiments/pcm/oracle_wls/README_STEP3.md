@@ -115,3 +115,45 @@ python -m scripts.experiments.pcm.oracle_wls.build_oracle_weights verify \
 External references:
 - https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html
 - https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima_process.arma_generate_sample.html
+
+
+## Independent Step 3 reviewer follow-up (2 November 2026)
+
+The external reviewer supplied eleven mathematical stress tests and four
+weight-archive tampering tests. All eleven mathematical tests passed without
+changes to oracle_variance.py. The original integrity tests reported two
+strict expected failures: (1) successful verification without an independent
+weight-manifest anchor or analytical recomputation; (2) a protocol.json
+change with a correspondingly updated internal SHA256SUMS line.
+
+The two gaps were fixed only in build_oracle_weights.py. A successful
+verify_weights call now requires either:
+
+- expected_weight_manifest_sha256 obtained and retained **outside** the
+  weight archive; or
+- recompute=True, which recomputes the analytical arrays from ground truth.
+
+The check for this requirement runs after the per-file source binding checks
+so that swapped NPZ files still produce the more specific source-measurement
+identity error. The verifier also compares the actual protocol.json digest
+against manifest['protocol_sha256'], confirms the step's declared diagonal
+covariance convention and compares the recorded input protocol hash to the
+frozen Step 2 protocol. It does not silently update any manifest or checksum.
+
+Both reviewer expected-failure marks have been removed after fixing them.
+The expanded tests live in:
+
+- pytests/pcm/test_oracle_wls_step3_reviewer_math.py
+- pytests/pcm/test_oracle_wls_step3_reviewer_integrity.py
+
+The original 50 weight files are preserved byte-for-byte, including
+their original external manifest SHA256. The source file
+oracle_variance.py is unchanged (SHA256
+e4c6d14c68f15d3bee1ed39d169da858799ef5b736f9f8f3e2c85a69c2224cde).
+The Step 4 Monte Carlo implementation is also unchanged. After these
+verification-only changes, rechecking the original Step 4 archive is
+appropriate; the stochastic experiment itself does not need repetition.
+
+The earlier text in this README describes historical Step 3 status when
+the weights were first created. Independent Step 4 Monte Carlo validation
+was subsequently completed (see README_STEP4.md).
