@@ -9,6 +9,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+from LION.pcm.randomized.figure_style import image_style
+
 OUT = Path("/store/LION/ttv22/pcm/results/pcm/pcm_utv_fixed20_npl_default_20261103")
 CATS = ("CIGS", "Organic", "Perovskite", "Reference", "Silicone")
 METHODS = ("zero_filled", "spgl1_bp", "gs_pnp", "A", "B", "C", "old_utv")
@@ -227,6 +229,10 @@ def export_visual_pdf(meta, rows):
     selections = meta["selected_50_ids"]
     assert all(len(selections[c]) == 10 for c in CATS)
     path = OUT / "Fixed20_NPL_50_Visual_Comparisons.pdf"
+    png_dir = OUT / "visual_pages_afm"
+    png_dir.mkdir(parents=True, exist_ok=True)
+    cmap, vmin, vmax = image_style("reconstruction")
+    assert (vmin, vmax) == (0.0, 1.0), "Unexpected PCM reconstruction display range"
     titles = [
         "Ground truth",
         "Zero-filled",
@@ -271,7 +277,7 @@ def export_visual_pdf(meta, rows):
             "Old U-TV: clean-trained 2 x 8 U-Net, epoch 99, 256 unrolled iterations.",
             "Full test: 450 images and one acquisition per image, seven reconstruction methods.",
             "PSNR and SSIM use raw images; LION HaarPSI clamps negative values internally.",
-            "All image displays use fixed grayscale intensity [0,1].",
+            "All image displays use the shared PCM AFM hot colormap on fixed intensity [0,1].",
             "The comparison tests full models, not noise training in isolation.",
         ]
         for i, n in enumerate(notes):
@@ -316,7 +322,7 @@ def export_visual_pdf(meta, rows):
                         assert im.shape == (256, 256), (cat, sid, name, im.shape)
                         ax = axs[ri, ci]
                         ax.imshow(
-                            im, cmap="gray", vmin=0, vmax=1, interpolation="nearest"
+                            im, cmap=cmap, vmin=vmin, vmax=vmax, interpolation="nearest"
                         )
                         ax.set_xticks([])
                         ax.set_yticks([])
@@ -344,12 +350,17 @@ def export_visual_pdf(meta, rows):
                 fig.text(
                     0.02,
                     0.012,
-                    f"Category: {cat} | fixed sampling and fixed NPL default noise | all panels share display [0,1]",
+                    f"Category: {cat} | fixed sampling and NPL default noise | AFM hot display [0,1]",
                     fontsize=9,
                 )
                 pdf.savefig(fig)
+                page_png = (
+                    png_dir / f"{cat}_{start + 1:02d}_{start + len(part):02d}_afm.png"
+                )
+                fig.savefig(page_png, dpi=145, bbox_inches="tight")
                 plt.close(fig)
     print("VISUAL_50_PDF", path, path.stat().st_size)
+    print("AFM_PNG_PAGES", len(list(png_dir.glob("*_afm.png"))), png_dir)
 
 
 def main():
