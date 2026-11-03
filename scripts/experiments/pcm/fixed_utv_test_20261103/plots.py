@@ -1,5 +1,6 @@
 """Create fixed-20%-sampling, NPL-default PCM boxplots and 50-image PDF."""
 import csv, json, math
+import hashlib
 from pathlib import Path
 import numpy as np
 import matplotlib
