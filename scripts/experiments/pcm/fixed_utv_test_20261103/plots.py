@@ -54,6 +54,10 @@ def checked_data():
                     assert math.isfinite(float(r[f"{m}_{key}"]))
         allrows.extend(rows)
     assert len(allrows) == 450
+    noise_sig = hashlib.sha256(
+        json.dumps(meta["noise_parameters_fixed"], sort_keys=True).encode()
+    ).hexdigest()
+    assert {r["fixed_noise_sha256"] for r in allrows} == {noise_sig}
     for cat, selected in meta["selected_50_ids"].items():
         for sid in selected:
             assert (OUT / "cases" / f"{cat}_{sid:04d}.npz").is_file()
@@ -265,7 +269,7 @@ def export_visual_pdf(meta, rows):
             "U-TV C: noise-trained 3 x 56 U-Net, epoch 60, 512 unrolled iterations.",
             "Old U-TV: clean-trained 2 x 8 U-Net, epoch 99, 256 unrolled iterations.",
             "Full test: 450 images and one acquisition per image, seven reconstruction methods.",
-            "PSNR / SSIM / HaarPSI computed on raw reconstruction values.",
+            "PSNR and SSIM use raw images; LION HaarPSI clamps negative values internally.",
             "All image displays use fixed grayscale intensity [0,1].",
             "The comparison tests full models, not noise training in isolation.",
         ]
