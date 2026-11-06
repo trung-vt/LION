@@ -1,0 +1,18 @@
+{
+  "min": 0.004403670318424702,
+  "max": 0.298147052526474,
+  "mean": 0.10804865509271622,
+  "median": 0.08143986761569977,
+  "std": 0.07490356266498566,
+  "dtype": "torch.float32",
+  "shape": [
+    1,
+    1,
+    256,
+    256
+  ],
+  "sha256": "cf9d2df5a301f090e9cb2e3eb4c179b68c8b384055a32f0294902f50a5ed6c4e",
+  "prior_sweep_map_max_abs_difference": 6.552785634994507e-05,
+  "primal_stepsize": 0.333,
+  "dual_stepsize": 0.333
+}
