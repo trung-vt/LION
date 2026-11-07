@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "pages": 2,
+  "methods_per_page": 8,
+  "20pct_matched_archived_psnr": {
+    "zero_filled": {
+      "reconstructed_psnr": 26.512752532958984,
+      "archived_psnr": 26.512752532958984,
+      "abs_difference": 0.0
+    },
+    "spgl1_bp": {
+      "reconstructed_psnr": 27.01398277282715,
+      "archived_psnr": 27.01398277282715,
+      "abs_difference": 0.0
+    },
+    "spgl1_bpdn": {
+      "reconstructed_psnr": 32.30575180053711,
+      "archived_psnr": 32.30575180053711,
+      "abs_difference": 0.0
+    },
+    "pnp_admm_tuned": {
+      "reconstructed_psnr": 40.272422790527344,
+      "archived_psnr": 40.272422790527344,
+      "abs_difference": 0.0
+    },
+    "utv_c60": {
+      "reconstructed_psnr": 33.42179489135742,
+      "archived_psnr": 33.42179489135742,
+      "abs_difference": 0.0
+    }
+  },
+  "10pct_measurement_sha256": "f04b0692ae58eec5556b540f4f8aa4a33cf23c34d6720f7a3d0833b822d38497",
+  "10pct_mask_sha256": "c7232bec50a7ae4b35f510daed51b43e0a51147875bf7d4b71915a6d2c49f34b",
+  "10pct_sampling_patterns": 6553,
+  "20pct_sampling_patterns": 13107,
+  "gs_pnp_note": "new frozen Step6 paper_final_z, not the separate older GS v2 450-test method",
+  "caution": "10% has transferred 20%-tuned parameters; TV is a test-image 20% oracle"
+}
