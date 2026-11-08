@@ -339,7 +339,7 @@ def latex_stats(stats):
 
 def latex_category_table(stats):
     lines = []
-    # Seven distinct method configurations; duplicate labels are explicitly recorded above.
+    # Eight distinct method configurations; repeated labels remain in the full results.
     for cat in CATEGORIES:
         d = stats[cat]
         lines.append(
