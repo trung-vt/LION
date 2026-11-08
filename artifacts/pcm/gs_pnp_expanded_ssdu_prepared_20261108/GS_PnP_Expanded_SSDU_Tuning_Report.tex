@@ -1,0 +1,143 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,hyperref,fancyhdr,enumitem,graphicx}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.5em}
+\setlength{\emergencystretch}{3em}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{PCM / GS-PnP SSDU expansion}
+\fancyhead[R]{8 November 2026}
+\fancyfoot[C]{\thepage}\setlength{\headheight}{14pt}
+\begin{document}
+{\LARGE\bfseries Expanded GS-PnP SSDU tuning}\\[4pt]
+{\large Dedicated preparation and experiment report}\\[4pt]
+\textbf{Current status: Prepared, not run.}
+\par\medskip\hrule
+\section{Executive summary}
+The previous ground-truth-free GS-PnP selection was
+\(\lambda=0.1\), denoiser \(\sigma=0.075\) and
+initial \(\tau_0=100/3\). Each was at the top of
+the previous finite search range. The five-image held-out
+measurement MSE was 0.0043654339.
+We prepare 27 new-grid configurations, including the
+old winning control and 26 previously untested combinations.
+Selecting among them must use only archived validation
+measurements, never image ground truth or the previously
+inspected 450-image test scores.
+
+\section{Tuning algorithm}
+Use the same five NPL-noisy validation images:
+CIGS 0733, Organic 0008, Perovskite 0283,
+Reference 0768 and Silicone 0589.
+For each image, retain the first 4,096 coarse rows
+of the 13,107 acquired Hadamard measurements in
+every reconstruction fold. Divide the remaining
+9,011 acquired fine rows into the four previously
+frozen disjoint SSDU holdouts.
+
+For candidate \(\theta=(\lambda,\sigma,\tau_0)\),
+reconstruct from fit rows \(\Theta_{ik}\)
+and score held-out rows \(\Lambda_{ik}\):
+\[
+L(\theta)=\frac15\sum_{i=1}^{5}\frac14
+\sum_{k=1}^{4}
+\frac{\|A_{\Lambda_{ik}}\widehat{x}_{\theta,ik}
+-y_{\Lambda_{ik}}\|_2^2}{|\Lambda_{ik}|}.
+\]
+Keep the original normalised PCM operator and summed
+half-squared residual fidelity, without a fold-size
+rescaling. Use the same pretrained GS-DRUNet and
+paper-final \(z\) image.
+
+\subsection*{Frozen parameter grid}
+\begin{center}\begin{tabular}{ll}\toprule
+Parameter & Candidate values\\\midrule
+\(\lambda\) & 0.10, 0.20, 0.40\\
+Denoiser \(\sigma\) & 0.075, 0.10, 0.15\\
+Initial \(\tau_0\) & 33.3333, 50, 75\\\bottomrule
+\end{tabular}\end{center}
+Freeze 100 maximum accepted steps, 20 line-search attempts,
+\(\gamma=0.1\), \(\eta=0.9\) and stopping
+tolerance \(10^{-6}\). Tune \(\lambda\) and \(\tau_0\)
+independently. Record accepted iterations,
+rejections, final \(\tau\), effective
+\(\lambda\tau\), and time per reconstruction.
+
+\section{Step-by-step plan}
+\begin{enumerate}[leftmargin=1.5em,itemsep=.2em]
+\item Verify the frozen acquisition hashes, original four fold
+masks, solver equivalence and data-fidelity scale.
+Freeze source hashes and the candidate grid.
+\item Reuse the original 20 fold scores of
+\texttt{gs\_018} under control ID \texttt{gs\_exp\_001},
+keeping original SHA256 provenance.
+\item Score 26 new configurations across five images
+and four folds: 520 new GS reconstructions.
+Each can take up to 100 accepted iterations,
+with additional backtracking work.
+\item Record all held-out losses and solver diagnostics.
+Exclude configurations with any failed fold.
+If more than nine candidates fail, withhold selection.
+\item Select the minimum balanced SSDU loss,
+breaking ties within \(10^{-10}\) by grid order.
+Freeze the candidate and every result hash.
+\item Check whether the winning parameters are still
+at the expanded upper bounds.
+Only after freezing, consider a separately labelled
+retrospective image-quality comparison.
+\item Refresh this report with actual scores and
+numerical diagnostics. Do not tune to test PSNR.
+\end{enumerate}
+
+\section{Experiment running}
+The expanded sweep has not begun. The intended GPU is
+tuni's RTX 4090, using an isolated CUDA UUID and
+deterministic cuBLAS/cuDNN. The original float64
+noisy measurements and mask indices are reused,
+while neural solvers receive their required float32
+values. The scoring code does not load targets.
+Case-level JSON files allow safe resumption.
+The old tuned-5 and tuned-50 selection records
+and the 450-image test benchmark are preserved.
+
+\section{Results and deliverables}
+\input{current_results.tex}
+\small
+\begin{longtable}{@{}lrrrrl@{}}
+\toprule
+Candidate&\(\lambda\)&\(\sigma\)&\(\tau_0\)&
+SSDU MSE&Status\\\midrule\endfirsthead
+\toprule
+Candidate&\(\lambda\)&\(\sigma\)&\(\tau_0\)&
+SSDU MSE&Status\\\midrule\endhead
+\input{candidate_rows.tex}
+\end{longtable}
+\normalsize
+\IfFileExists{figures/candidate_losses.pdf}{\begin{figure}[ht]\centering\includegraphics[width=.95\linewidth]{figures/candidate_losses.pdf}\caption{Validation-only SSDU loss across completed candidates.}\end{figure}}{}
+\IfFileExists{figures/parameter_slices.pdf}{\begin{figure}[ht]\centering\includegraphics[width=.95\linewidth]{figures/parameter_slices.pdf}\caption{Expanded lambda, sigma and initial step-size slices of the validation-only risk.}\end{figure}}{}
+The dedicated folder holds the original grid, preflight,
+resumable numerical code, case-level results, frozen selection
+and an editable report in both TeX and PDF.
+
+\section{Conclusion}
+An expanded parameter grid can establish whether the
+original SSDU measurement-risk search was too narrow.
+It cannot by itself establish globally optimal reconstruction,
+or guarantee preservation of thin structures.
+Higher parameter values may worsen numerical stability.
+Correlated PCM noise and unmeasured Hadamard directions
+also limit the link between SSDU risk and image quality.
+
+\paragraph{Primary papers.}
+Yaman et al., \emph{Self-Supervised Learning of
+Physics-Guided Reconstruction Neural Networks without
+Fully-Sampled Reference Data}, Magnetic Resonance in Medicine
+(2020), acquired measurement partitioning:
+\url{https://doi.org/10.1002/mrm.28378}.
+
+Hurault, Leclaire and Papadakis,
+\emph{Gradient Step Denoiser for Convergent Plug-and-Play},
+ICLR (2022), gradient-step update and backtracking:
+\url{https://openreview.net/pdf?id=fPhKeld3Okz}.
+\end{document}

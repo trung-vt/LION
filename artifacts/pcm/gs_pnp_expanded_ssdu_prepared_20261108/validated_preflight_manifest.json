@@ -1,0 +1,75 @@
+{
+  "candidate_count": 27,
+  "candidate_grid_sha256": "0571417111e4ec051061930194c1e3d9c3c8c74ad48acb86dcb7f9020b7a9090",
+  "code_sha256": {
+    "expanded_gs.py": "98590c3b319bfedf66b25d9f67efcbf13a74257dc717e8b241a82ef30b28849d",
+    "score_grid.py": "d38762927b6ada75a784055a705fbc8a5c0d9ea0f04f68321812fc8b34ab2960",
+    "solver_adapter.py": "833d3b8bb7ef7a1aafb278ae263ccae61a3e83c83995e501e5505057a9163eb7",
+    "ssdu_risk.py": "8f2451341ce4dd8604096b1c50d0f8f5d460fe377338b72f0d5d1d8eccd8c6f3"
+  },
+  "control_params": {
+    "candidate_id": "gs_exp_001",
+    "eta_backtracking": 0.9,
+    "gamma_backtracking": 0.1,
+    "lambda": 0.1,
+    "max_accepted_iterations": 100,
+    "max_backtracking_attempts": 20,
+    "output": "paper_final_z",
+    "sigma": 0.075,
+    "stopping_eps": 1e-06,
+    "stopping_policy": "deepinv_relative_objective",
+    "tau0": 33.333333333333336
+  },
+  "control_reuse_note": "Existing 20 fold scores from gs_018 reused with original SHA audit",
+  "failure_policy": "Any failed fold invalidates its candidate. Exclude invalid candidates; if more than 9 of 27 are invalid, withhold selection and investigate numerical failure using validation data only.",
+  "fidelity_convention": "normalized Hadamard operator; summed half-squared l2",
+  "five_cases": [
+    {
+      "category": "CIGS",
+      "fold_file_sha256": "accfa0ea6bc457317eec8493271ca25b5762ae3e823abf4515d98f673a69ac18",
+      "sample_id": 733,
+      "source_file_sha256": "2544a0b24bf511d9cc932b992cf72c5a3aaed75e77f87098e14a86f589058b2b"
+    },
+    {
+      "category": "Organic",
+      "fold_file_sha256": "534932b995d0d301eb710b9682d415d614fdadacb264a258406dd64ac2e12f52",
+      "sample_id": 8,
+      "source_file_sha256": "4eb88a6a03b4e9e40114da35a56889e9f43a390488b627f05a0692f0e5bd5b7d"
+    },
+    {
+      "category": "Perovskite",
+      "fold_file_sha256": "a44f8d67ceb856d58504d5e29b4c239ef6392d38f434bf6bcbddccd9efe76eca",
+      "sample_id": 283,
+      "source_file_sha256": "fa731444191aff4411f0b22f7de7b65668fadd4539504e2a0cdef62e5b3a7410"
+    },
+    {
+      "category": "Reference",
+      "fold_file_sha256": "c5110853611ce93d3cfdf7bd7dddbb6f6118646dff7129cf004e78e1f28a8488",
+      "sample_id": 768,
+      "source_file_sha256": "ca83169ef8b7c4298c2f8d952be3de88ff787120df7161b526bafa4408076a14"
+    },
+    {
+      "category": "Silicone",
+      "fold_file_sha256": "75c672b2e118a7de6945999f67999a39170e1d6246927bf7dc0b93e1a3eb2d79",
+      "sample_id": 589,
+      "source_file_sha256": "70603c37a1f2c70951eb63cb00b491cb87f3366caff1e3c910098fa5e4ed0313"
+    }
+  ],
+  "git_commit_at_prepare": "a7499c4af177974676e0b17bcd312f3db4322971",
+  "has_ground_truth": false,
+  "new_candidate_count": 26,
+  "noise_independence_caveat": "PCM time-correlated noise can bias held-out risk",
+  "old_control_frozen_selection_sha256": "d0d3359bb0f3c98cb704449021c856de352f636755b72b45ffa8b4eb69b0a3bb",
+  "original_control_score": 0.004365433883375238,
+  "original_control_score_sha256": "c2d253470407353bab6ab38a0943c490302ba79ed68f2298d142966b5b98b996",
+  "planned_unique_new_fold_reconstructions": 520,
+  "purpose": "Only the blind SSDU validation MSE determines hyperparameters",
+  "repeat_controls": false,
+  "schema": "pcm-expanded-gs-ssdu-5-preflight-v1",
+  "source_pretrained_model": "Original frozen GS-DRUNet, paper-final-z",
+  "source_validation_manifest_sha256": "42cba7f1f47c99f5dc4afb86b0c75402aca008caa6bd9136ab28b9e45ffa0380",
+  "status": "prepared_not_run",
+  "test_set_used_for_selection": false,
+  "tie_tolerance_absolute": 1e-10,
+  "total_fold_records_across_27_candidates": 540
+}
