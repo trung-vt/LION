@@ -181,8 +181,22 @@ def create_stats(table, data, admm_table, tv_table):
             arr = [float(x["pnp_wall_seconds"]) for x in admm_table.values()]
         elif method == "tv":
             arr = [float(x["seconds"]) for x in tv_table.values()]
+        elif method == "spgl1_bp":
+            with (BASE / "all_450_metrics.csv").open(newline="") as f:
+                arr = [float(x["spgl1_runtime_s"]) for x in csv.DictReader(f)]
+        elif method == "spgl1_bpdn":
+            arr = []
+            path = ROOT / "ten_methods_matched_450_20261105_v1/records/bpdn"
+            for category in CATEGORIES:
+                for fp in sorted((path / category).glob("*.json")):
+                    rec = json.loads(fp.read_text())
+                    key = (rec["category"], int(rec["sample_id"]))
+                    assert rec["measurement_sha256"] == table[key]["measurement_sha256"]
+                    assert rec["pattern_sha256"] == table[key]["pattern_sha256"]
+                    arr.append(float(rec["seconds"]))
         else:
             arr = []
+        assert len(arr) in (0, 450), (method, len(arr))
         times[method] = {
             "n": len(arr),
             "mean_seconds": float(np.mean(arr)) if arr else None,
@@ -363,6 +377,19 @@ def latex_category_table(stats):
     return "\n".join(lines)
 
 
+def latex_runtime_table(times):
+    lines = []
+    for method, label, _ in METHODS:
+        r = times[method]
+        value = (
+            f'{r["mean_seconds"]:.3f} $\\pm$ {r["std_seconds"]:.3f}'
+            if r["n"] == 450
+            else "not archived"
+        )
+        lines.append(label + " & " + str(r["n"]) + " & " + value + r" \\")
+    return "\n".join(lines)
+
+
 def update_report(stats, times, paired):
     old = REPORT / "SSDU_PnP_Tuning_Report.tex"
     oldpdf = REPORT / "SSDU_PnP_Tuning_Report.pdf"
@@ -455,6 +482,25 @@ PSNR, SSIM, HaarPSI and MSE.}
 
 @@COMPARISON@@
 
+\subsection*{Reconstruction time}
+The table gives seconds per reconstructed image, from new GPU runs or verified
+historical records. Offline tuning time is excluded. The methods were not
+all timed on the same GPU; therefore these values are descriptive, rather than
+a controlled hardware-speed benchmark. Identical 5/50 selections reuse one
+numerical reconstruction, not two independent computations.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Method} & \textbf{Timed cases} & \textbf{Mean $\pm$ SD, seconds/image}\\
+\midrule
+@@RUNTIME@@
+\bottomrule
+\end{tabular}
+\caption{Available reconstruction times. Missing timings are not estimated.}
+\end{table}
+
 \subsection*{Per-category comparison}
 Table~\ref{tab:categorypsnr} summarises PSNR means for the seven numerical
 choices that are distinct after accounting for the repeated SSDU selections.
@@ -485,6 +531,7 @@ this compact table, not in the full 11-method results.}
         "@@STATS@@": latex_stats(stats),
         "@@COMPARISON@@": comparison,
         "@@CATEGORYROWS@@": latex_category_table(stats),
+        "@@RUNTIME@@": latex_runtime_table(times),
     }.items():
         assert k in appendix
         appendix = appendix.replace(k, v)
