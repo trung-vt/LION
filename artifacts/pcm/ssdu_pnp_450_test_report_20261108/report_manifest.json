@@ -1,0 +1,78 @@
+{
+  "frozen_selection_labels": 4,
+  "method_labels": 11,
+  "report_pages": 8,
+  "source_files": {
+    "README_v2.md": {
+      "bytes": 1805,
+      "sha256": "efd4b646fbff9bba384ba995cd30124d3d7ce86e98b8dd0fb489af16c92acfcd"
+    },
+    "SSDU_PnP_Tuning_Report_v2.pdf": {
+      "bytes": 609435,
+      "sha256": "65f304382bf6b07963fc41ea1e00c5e7edc6982d28f6ece54d5f7d49c765de35"
+    },
+    "SSDU_PnP_Tuning_Report_v2.tex": {
+      "bytes": 23057,
+      "sha256": "7a9b5645ed25e40f74852031cd0d86fe5704e054717cfd44e90b7cccd872780a"
+    },
+    "archive/SSDU_PnP_Tuning_Report_v1.pdf": {
+      "bytes": 459489,
+      "sha256": "b789ff8b2081cfa084188f06fd0a18238961513faea8e822c4bb67b95daa107a"
+    },
+    "archive/SSDU_PnP_Tuning_Report_v1.tex": {
+      "bytes": 16313,
+      "sha256": "b2ee2d772d45d2e8b0155b6ea4003580f35e8bcd212ecd74a81a18cee36f73a1"
+    },
+    "figures/14_examples_all_11_methods.pdf": {
+      "bytes": 6119226,
+      "sha256": "56d57205b388c5ebd22c534b223ec6a4c69ef42249c12a0dd657919c280cc501"
+    },
+    "figures/all_450_11_method_boxplots.pdf": {
+      "bytes": 31001,
+      "sha256": "4cc06ff792839460870eecbaf2c7bfba19d935cab1bdbb2bd42213fbb63e9268"
+    },
+    "figures/all_450_11_method_mean_sd.pdf": {
+      "bytes": 29690,
+      "sha256": "2088d25914b3bf91cfb2bc196fcce0878989d8a16f8bf04b9404ce0bfb8ebb30"
+    },
+    "figures/candidate_losses.pdf": {
+      "bytes": 19961,
+      "sha256": "4a915ed9f3d5dd263a3158747279875342079e5d7e1c99027be450ce4ba75396"
+    },
+    "figures/category_11_method_means_sd.pdf": {
+      "bytes": 63234,
+      "sha256": "f9b7fc2c4e0a8248bdd37b293f312b53083f0379d4aae46be5daf68f479bd4e0"
+    },
+    "figures/category_losses.pdf": {
+      "bytes": 20686,
+      "sha256": "5756882498b2eaab18dbbfe5cdb62b0362a4b7f6d0b7e7dd05a0c9e9f8f0ac90"
+    },
+    "test/all_450_11_method_metrics.csv": {
+      "bytes": 452831,
+      "sha256": "1ad3dd9f1ff216b20e3cef1f5bf353203b7c02bbbc2e28a274ec40b63ef99a19"
+    },
+    "test/all_450_summary.json": {
+      "bytes": 63258,
+      "sha256": "da9a9d6a40483af235cecd6918770d0e22418b853056e15dddf97ac2c60cbe74"
+    },
+    "test/evaluation_complete.json": {
+      "bytes": 1589,
+      "sha256": "c95a85f4ba986ba5e79b44ff8576eb94ad4f98f7f2dfe963f5477bc42ac63ec0"
+    },
+    "test/inference_time_summary.json": {
+      "bytes": 1222,
+      "sha256": "70b8cf699c7f78069010d946e3841c346695acb6ad00c74325d1160e6e8712bd"
+    },
+    "test/paired_psnr_gains.json": {
+      "bytes": 829,
+      "sha256": "e8c0d6a40dce4e981ba0c2eec0c175e79be2c364324e03a2d8c1117a642dfca3"
+    },
+    "test/protocol.json": {
+      "bytes": 4853,
+      "sha256": "42bc9fc64fe3aef8666d81ea995feae73b09b2f11c5b328baa40597b46edf3c9"
+    }
+  },
+  "test_cases": 450,
+  "test_tuning": false,
+  "version": "v2_450_test_2026-11-08"
+}

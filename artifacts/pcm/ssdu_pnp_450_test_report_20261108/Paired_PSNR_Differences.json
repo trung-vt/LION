@@ -1,0 +1,30 @@
+{
+  "gs_pnp_ssdu5": {
+    "baseline": "gs_pnp_oracle",
+    "fraction_better_psnr": 0.1288888888888889,
+    "fraction_equal_psnr": 0.0,
+    "mean_psnr_gain_db": -2.5194543414645727,
+    "std_psnr_gain_db": 1.8904166770603348
+  },
+  "gs_pnp_ssdu50": {
+    "baseline": "gs_pnp_oracle",
+    "fraction_better_psnr": 0.1288888888888889,
+    "fraction_equal_psnr": 0.0,
+    "mean_psnr_gain_db": -2.5194543414645727,
+    "std_psnr_gain_db": 1.8904166770603348
+  },
+  "pnp_admm_ssdu5": {
+    "baseline": "pnp_admm_oracle",
+    "fraction_better_psnr": 0.0,
+    "fraction_equal_psnr": 1.0,
+    "mean_psnr_gain_db": 0.0,
+    "std_psnr_gain_db": 0.0
+  },
+  "pnp_admm_ssdu50": {
+    "baseline": "pnp_admm_oracle",
+    "fraction_better_psnr": 0.0,
+    "fraction_equal_psnr": 1.0,
+    "mean_psnr_gain_db": 0.0,
+    "std_psnr_gain_db": 0.0
+  }
+}

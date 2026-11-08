@@ -1,0 +1,57 @@
+{
+  "gs_pnp_oracle": {
+    "mean_seconds": 1.329462060793303,
+    "n": 450,
+    "std_seconds": 0.48318352209300297
+  },
+  "gs_pnp_ssdu5": {
+    "mean_seconds": 2.0160155885226816,
+    "n": 450,
+    "std_seconds": 1.099183280413251
+  },
+  "gs_pnp_ssdu50": {
+    "mean_seconds": 2.0160155885226816,
+    "n": 450,
+    "std_seconds": 1.099183280413251
+  },
+  "pnp_admm_oracle": {
+    "mean_seconds": 0.4211008458506937,
+    "n": 450,
+    "std_seconds": 0.1756139800766265
+  },
+  "pnp_admm_ssdu5": {
+    "mean_seconds": 0.4211008458506937,
+    "n": 450,
+    "std_seconds": 0.1756139800766265
+  },
+  "pnp_admm_ssdu50": {
+    "mean_seconds": 0.4211008458506937,
+    "n": 450,
+    "std_seconds": 0.1756139800766265
+  },
+  "spgl1_bp": {
+    "mean_seconds": 1.0252177991681837,
+    "n": 450,
+    "std_seconds": 0.025325556934415523
+  },
+  "spgl1_bpdn": {
+    "mean_seconds": 0.24943831740671563,
+    "n": 450,
+    "std_seconds": 0.08863233756001351
+  },
+  "tv": {
+    "mean_seconds": 0.6831642164698698,
+    "n": 450,
+    "std_seconds": 0.005319483721824019
+  },
+  "utv_c60": {
+    "mean_seconds": null,
+    "n": 0,
+    "std_seconds": null
+  },
+  "zero_filled": {
+    "mean_seconds": null,
+    "n": 0,
+    "std_seconds": null
+  }
+}
