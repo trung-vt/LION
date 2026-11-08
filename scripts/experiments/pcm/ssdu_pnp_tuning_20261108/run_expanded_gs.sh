@@ -36,6 +36,7 @@ case "$ACTION" in
     date -Is
     "$PY" -B -u -m "$MOD" run --first 1 --last 27 2>&1 | tee -a "$DIR/logs/gs_expanded_sweep.log"
     "$PY" -B -u -m "$MOD" freeze 2>&1 | tee -a "$DIR/logs/freeze.log"
+    "$PY" -B -m scripts.experiments.pcm.ssdu_pnp_tuning_20261108.plot_expanded_gs
     "$PY" -B -m "$REF"
     cd "$DIR/report"
     latexmk -pdf -interaction=nonstopmode -halt-on-error GS_PnP_Expanded_SSDU_Tuning_Report.tex

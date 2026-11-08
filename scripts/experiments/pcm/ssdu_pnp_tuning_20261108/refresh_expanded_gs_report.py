@@ -48,7 +48,9 @@ def make():
             + f'{candidate["tau0"]:.4f} & {err} & {state} '
             + r"\\"
         )
-    (REPORT / "candidate_rows.tex").write_text("\n".join(rows) + "\n")
+    (REPORT / "candidate_rows.tex").write_text(
+        "\n".join(rows) + "\n" + r"\bottomrule" + "\n"
+    )
 
     frozen = ROOT / "frozen_selection.json"
     if frozen.exists():
