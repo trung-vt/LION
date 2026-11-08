@@ -14,6 +14,8 @@ Correction 8 November 2026: same original PCM observations, reconstructions, met
 
 `page1_20pct_metrics.json`, `page2_10pct_metrics.json`: unchanged original metrics.
 
+`diagnostics_*.json`: original solver diagnostics, preserved bit for bit.
+
 `protocol.json`, `verification.json`: correction and integrity metadata.
 
 The other source scripts are the original v1 acquisition/reconstruction scripts; use `source/03_render.py` in this v2 folder to render the corrected PDF. The parameters for 10% were not retuned.
