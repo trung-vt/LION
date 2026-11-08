@@ -1,0 +1,92 @@
+{
+  "citations": [
+    "https://doi.org/10.1002/mrm.28378",
+    "https://openreview.net/pdf?id=fPhKeld3Okz"
+  ],
+  "full50_completion": "2026-11-08T13:42:43+00:00",
+  "methods": {
+    "gs_pnp": 18,
+    "pnp_admm": 15
+  },
+  "report_date": "2026-11-08",
+  "report_pages": 5,
+  "source_files_sha256": {
+    "README.md": "87405d781c08a44107e0555dfb608443d69d346aaac80bd0695fb13795669a65",
+    "SSDU_PnP_Tuning_Report.pdf": "b789ff8b2081cfa084188f06fd0a18238961513faea8e822c4bb67b95daa107a",
+    "SSDU_PnP_Tuning_Report.tex": "b2ee2d772d45d2e8b0155b6ea4003580f35e8bcd212ecd74a81a18cee36f73a1",
+    "figures/candidate_losses.pdf": "4a915ed9f3d5dd263a3158747279875342079e5d7e1c99027be450ce4ba75396",
+    "figures/category_losses.pdf": "5756882498b2eaab18dbbfe5cdb62b0362a4b7f6d0b7e7dd05a0c9e9f8f0ac90",
+    "regenerate_charts.py": "93a4fc2d9026845bbdccbade3b83dc489c200913d7f56493c2b199a0d0e47b5b"
+  },
+  "test450_status": "not evaluated",
+  "tuning_status": "finished",
+  "version": "1.0",
+  "winners": {
+    "full50_admm": {
+      "SSDU_loss": 0.004517221586986506,
+      "candidate_id": "admm_009",
+      "params": {
+        "candidate_id": "admm_009",
+        "consecutive_passes": 5,
+        "eps_abs": 0.0001,
+        "eps_rel": 0.001,
+        "max_iterations": 100,
+        "min_iterations": 20,
+        "rho": 0.5,
+        "sigma": 0.075
+      },
+      "selection_sha256": "ed52984f043148abaafe6edba30ed48fea4109ffce7b03bcee94d0d5ce57d61e"
+    },
+    "full50_gs": {
+      "SSDU_loss": 0.0044319309496737135,
+      "candidate_id": "gs_018",
+      "params": {
+        "candidate_id": "gs_018",
+        "eta_backtracking": 0.9,
+        "gamma_backtracking": 0.1,
+        "lambda": 0.1,
+        "max_accepted_iterations": 100,
+        "max_backtracking_attempts": 20,
+        "output": "paper_final_z",
+        "sigma": 0.075,
+        "stopping_eps": 1e-06,
+        "stopping_policy": "deepinv_relative_objective",
+        "tau0": 33.333333333333336
+      },
+      "selection_sha256": "82a025028a68bf3e89be3e929b17e7d33c8bf55412b30e495cbc7ca0cc77f572"
+    },
+    "pilot5_admm": {
+      "SSDU_loss": 0.00430443429628794,
+      "candidate_id": "admm_009",
+      "params": {
+        "candidate_id": "admm_009",
+        "consecutive_passes": 5,
+        "eps_abs": 0.0001,
+        "eps_rel": 0.001,
+        "max_iterations": 100,
+        "min_iterations": 20,
+        "rho": 0.5,
+        "sigma": 0.075
+      },
+      "selection_sha256": "11654974bbaf270fd688116f23896eb1de0bd7624c77ee648e038e7adbc2b099"
+    },
+    "pilot5_gs": {
+      "SSDU_loss": 0.004365433883375238,
+      "candidate_id": "gs_018",
+      "params": {
+        "candidate_id": "gs_018",
+        "eta_backtracking": 0.9,
+        "gamma_backtracking": 0.1,
+        "lambda": 0.1,
+        "max_accepted_iterations": 100,
+        "max_backtracking_attempts": 20,
+        "output": "paper_final_z",
+        "sigma": 0.075,
+        "stopping_eps": 1e-06,
+        "stopping_policy": "deepinv_relative_objective",
+        "tau0": 33.333333333333336
+      },
+      "selection_sha256": "d0d3359bb0f3c98cb704449021c856de352f636755b72b45ffa8b4eb69b0a3bb"
+    }
+  }
+}

@@ -1,0 +1,204 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=21mm]{geometry}
+\usepackage{booktabs,tabularx,array,amsmath,amssymb,graphicx,xcolor,hyperref,fancyhdr}
+\usepackage{enumitem}
+\usepackage{float}
+\definecolor{main}{HTML}{22384F}
+\definecolor{muted}{HTML}{52687B}
+\hypersetup{colorlinks=true,urlcolor=main,linkcolor=main}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.13}
+\setlist[itemize]{noitemsep,topsep=0.15em,leftmargin=1.6em}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{muted}PCM: ground-truth-free PnP tuning}
+\fancyhead[R]{\small\color{muted}8 November 2026}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+\begin{document}
+\vspace*{0.25em}
+{\LARGE\bfseries\color{main} SSDU-style parameter tuning for noisy PCM}\\[4pt]
+{\large PnP-ADMM-DRUNet and GS-PnP-GS-DRUNet}\\[6pt]
+{\color{muted} Experiment report \quad Version 1.0 \quad 8 November 2026}\\[2pt]
+{\color{muted} Parameter search: completed and frozen \quad 450-image evaluation: pending}
+\vspace{0.2cm}\hrule
+
+\section{Executive summary}
+
+This experiment selects plug-and-play (PnP) reconstruction parameters for noisy photocurrent mapping (PCM) \emph{without ground-truth images}. The previously reported ``oracle-tuned'' PnP baselines used ground-truth reconstruction scores on \emph{validation} images, not individual test images. We replace that supervision with a measurement-only selection loss: each candidate reconstructs from part of the acquired Hadamard measurements and predicts the withheld part. This is inspired by self-supervised learning via data undersampling (SSDU) \cite{yaman2020}, but it tunes reconstruction hyperparameters rather than neural-network weights.
+
+We retain four distinct selections: \textbf{PnP-ADMM-tuned-5}, \textbf{PnP-ADMM-tuned-50}, \textbf{GS-PnP-tuned-5} and \textbf{GS-PnP-tuned-50}. The 5-image subset contains one validation image from each of the five PCM categories; the 50-image subset contains ten per category. All 15 ADMM and all 18 GS-PnP configurations were evaluated on both subsets, and all selections were frozen. The runner reported \textbf{no candidate failures}. The 50-image parameter search completed on tuni on \textbf{8 November 2026 at 13:42:43 UK time}.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lrlXr@{}}
+\toprule
+\textbf{Method} & \textbf{Images} & \textbf{Candidate} & \textbf{Chosen parameters} & \textbf{SSDU loss} \\
+\midrule
+PnP-ADMM & 5 & \texttt{admm\_009} & $\rho=0.5$, $\sigma=0.075$ & 0.00430443 \\
+PnP-ADMM & 50 & \texttt{admm\_009} & $\rho=0.5$, $\sigma=0.075$ & 0.00451722 \\
+GS-PnP & 5 & \texttt{gs\_018} & $\lambda=0.1$, $\sigma=0.075$, $\tau_0=33.3333$ & 0.00436543 \\
+GS-PnP & 50 & \texttt{gs\_018} & $\lambda=0.1$, $\sigma=0.075$, $\tau_0=33.3333$ & 0.00443193 \\
+\bottomrule
+\end{tabularx}
+\caption{Frozen results of the 5-image and 50-image tuning. SSDU loss is held-out measurement mean-squared error, \emph{not} image MSE. The losses use different validation samples.}
+\label{tab:winners}
+\end{table}
+
+The two validation sizes selected \textbf{the same parameters} for each PnP algorithm, within the fixed search grids. This is evidence of selection stability, but it does not show whether the selected reconstructions match the supervised baselines in PSNR, SSIM, HaarPSI or detail preservation. The agreed \textbf{450-image test-set evaluation has not yet been run} as part of this experiment.
+
+\section{Tuning algorithm}
+
+\subsection*{Acquisition and four-fold splitting}
+
+For a noisy PCM acquisition, write
+\begin{equation}
+ y=Ax+\varepsilon,\qquad n=256^2,\qquad m=13{,}107.
+\end{equation}
+Here $A$ is the \emph{normalised} dyadic Hadamard sampling operator ($J=8$) with 20\% multilevel sampling and a fully included coarse block ($J_c=6$). We use one archived NPL-default noisy acquisition per validation image; the original measurements are stored in float64 precision, while existing PnP solvers use float32 where necessary.
+
+For each image $i$, keep all \textbf{4,096 coarse measurements} in the reconstruction set. Split only the other \textbf{9,011 acquired fine-scale measurements} into four deterministic, level-stratified held-out folds $\Lambda_{ik}$ of approximately 2,253 measurements each (blocks of 128 row positions). Let $\Theta_{ik}$ contain all acquired measurements except the held-out fold. Thus $\Theta_{ik}\cap\Lambda_{ik}=\varnothing$. The held-out measurements are not passed to the solver.
+
+\subsection*{Prediction loss and parameter selection}
+
+For candidate parameters $\theta$, reconstruct using the fit measurements:
+\begin{equation}
+ \widehat x_{\theta,ik}=\mathcal{R}_{\theta}(A_{\Theta_{ik}},y_{\Theta_{ik}}).
+\end{equation}
+Then calculate the loss \emph{only on the withheld measurements}:
+\begin{equation}
+ \ell_{ik}(\theta)=\frac{1}{|\Lambda_{ik}|}\left\|A_{\Lambda_{ik}}\widehat x_{\theta,ik}-y_{\Lambda_{ik}}\right\|_2^2.
+\end{equation}
+With $S_c$ the images belonging to category $c$, the selection criterion is
+\begin{equation}
+ \boxed{\displaystyle
+ L_S(\theta)=\frac15\sum_{c=1}^{5}\frac1{|S_c|}\sum_{i\in S_c}\frac14\sum_{k=1}^{4}\ell_{ik}(\theta),\qquad
+ \widehat\theta_S=\operatorname*{arg\,min}_{\theta\in\mathcal G}L_S(\theta).}
+ \label{eq:ssdu}
+\end{equation}
+This gives every category equal weight. The $S=5$ and $S=50$ experiments use the \emph{same} candidate grid $\mathcal G$ and the same held-out folds for overlapping cases. The 5-image selections were frozen before the 50-image selections. The fixed tie tolerance was $10^{-10}$ in absolute loss, with grid order breaking ties.
+
+\subsection*{Candidate grids and solver details}
+
+\begin{itemize}
+\item \textbf{PnP-ADMM}: $\rho\in\{0.1,0.25,0.5,1,2\}$ and denoiser $\sigma\in\{0.03,0.05,0.075\}$, giving \textbf{15 candidates}. The solver permits 20--100 iterations, absolute residual tolerance $10^{-4}$, relative residual tolerance $10^{-3}$, and requires five consecutive passes to stop.
+\item \textbf{GS-PnP}: $\lambda\in\{0.01,0.03,0.1\}$, $\sigma\in\{0.03,0.05,0.075\}$, and independent initial step size $\tau_0\in\{10,100/3\}$, giving \textbf{18 candidates}. It allows 100 accepted iterations, 20 backtracking attempts, $\gamma=0.1$, $\eta=0.9$ and stopping tolerance $10^{-6}$. The reconstruction output is the \emph{paper-final $z$} image, not the internal $x$ iterate \cite{hurault2022}.
+\end{itemize}
+
+The fidelity is $\frac12\|A_{\Theta}x-y_{\Theta}\|_2^2$, with no additional division by the fit-set size. The operator audit confirmed the full and split Hadamard projections agree. The GS-PnP implementation initially showed GPU-dependent backtracking differences; after deterministic CUDA settings were enabled, the new adapter matched the frozen earlier GS solver exactly in the equivalence test.
+
+\subsection*{Limits of the measurement-only criterion}
+
+The simulated PCM noise can be correlated across acquisition times. If the fit and held-out noise are correlated, the held-out prediction error is not necessarily an unbiased estimate of clean measurement prediction risk. Also, if $h\in\ker(A)$, then $A(x+h)=Ax$: unobserved fine detail cannot be assessed from acquired measurements alone. Finally, an SSDU fit fold contains fewer rows than the final 20\% acquisition. The experiment keeps the fidelity convention fixed and transfers the selected parameter values directly to the full acquisition. These limitations must be considered when later comparing image metrics.
+
+\section{Step-by-step plan}
+
+\small
+\begin{tabularx}{\linewidth}{@{}p{8mm}X p{22mm}@{}}
+\toprule
+\textbf{Step} & \textbf{Action} & \textbf{Status} \\
+\midrule
+0 & Verify the archived measurements; freeze five-image subset, 50-image set, candidate grid and 200 measurement-fold files. & Completed \\
+1 & Check normalisation, fit/holdout disjointness, numerical consistency and deterministic solver adapters. & Completed \\
+2 & Score all 15 ADMM and 18 GS-PnP candidates on five images, using four folds each. & Completed \\
+3 & Independently freeze PnP-ADMM-tuned-5 and GS-PnP-tuned-5, including all candidate scores. & Completed \\
+4 & Evaluate the identical candidate grids using all 50 validation images; reuse saved five-image folds. & Completed \\
+5 & Verify all 50-image candidates and freeze the two tuned-50 configurations. & Completed \\
+6 & Run all four SSDU methods and seven existing baselines on the fixed 450-image test acquisitions. & Not yet run \\
+7 & Produce combined PSNR, SSIM, HaarPSI, MSE, timing and paired-comparison figures. & Not yet run \\
+8 & Update this document with image quality results, failure analysis and reproducibility notes. & Future update \\
+\bottomrule
+\end{tabularx}
+\normalsize
+
+\section{Experiment running}
+
+\subsection*{Data and reproducibility}
+
+The validation input is the \textbf{frozen acquisition-only archive} from the earlier oracle WLS experiment. It contains exactly \textbf{50 validation acquisitions and no test acquisitions}: 10 from each of CIGS, Organic, Perovskite, Reference and Silicone, under 20\% sampling with NPL-default noise. The pilot image IDs are CIGS/0733, Organic/0008, Perovskite/0283, Reference/0768 and Silicone/0589 (validation permutation positions 901, 903, 905, 907 and 909). The source archive manifest begins with SHA256 \texttt{b30ff71a305bead9}.
+
+Tuning ran on \textbf{tuni}. PnP-ADMM used the RTX 4070 and GS-PnP used the RTX 4090. Deterministic cuDNN and cuBLAS settings were enabled for numerical repeatability. The first five cases per grid were reused in full50 instead of recomputed. Across the 33 parameter configurations and 50 images with four folds each, the planned count was \textbf{6,600 unique fold reconstructions}. Each fold reconstruction can take many ADMM or GS iterations, and GS backtracking can require additional network evaluations.
+
+The search was saved incrementally to JSON. Each candidate has per-image, per-fold losses, stopping diagnostics, aggregate category means and checksums. An unattended supervisor resumed the remaining full50 candidates after the initial single-candidate run, checked for incomplete candidates and failures, then generated frozen winner records. It finished at \textbf{13:42:43 UK time on 8 November 2026}. The numerical code revision recorded at run start was \texttt{c8842f5c42e8}; the grids, original acquisition manifest and code source files have hashes stored in the experiment archive.
+
+\subsection*{Audit results}
+
+The fit and held-out projections matched their corresponding rows of the full operator in the numerical audit. Adjoint relative errors were 0 for the fit operator and about $9.4\times10^{-8}$ for the held-out operator. Under deterministic settings, the GS adapter matched the previously frozen GS reconstruction exactly (maximum absolute difference 0). The ADMM adapter completed its iteration-bound smoke test. All \textbf{33 candidates} were completed in both the five-image and 50-image searches, with \textbf{no recorded candidate failures}. No ground-truth image or test-set acquisition was read for candidate selection.
+
+\clearpage
+\section{Results and deliverables}
+
+\subsection*{Candidate ranking}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.77\linewidth]{figures/candidate_losses.pdf}
+\caption{SSDU measurement-holdout losses over all candidate configurations. The two series use five and 50 validation images, respectively. Lower loss indicates better held-out measurement prediction, not necessarily higher PSNR.}
+\end{figure}
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}l c X@{}}
+\toprule
+\textbf{Algorithm} & \textbf{Images} & \textbf{Three best candidates by SSDU loss} \\
+\midrule
+ADMM & 5 & \texttt{admm\_009} (0.00430443), \texttt{admm\_006} (0.00436202), \texttt{admm\_012} (0.00467883) \\
+ADMM & 50 & \texttt{admm\_009} (0.00451722), \texttt{admm\_006} (0.00463695), \texttt{admm\_012} (0.00492435) \\
+GS-PnP & 5 & \texttt{gs\_018} (0.00436543), \texttt{gs\_016} (0.00437685), \texttt{gs\_012} (0.00439187) \\
+GS-PnP & 50 & \texttt{gs\_018} (0.00443193), \texttt{gs\_012} (0.00446876), \texttt{gs\_017} (0.00447703) \\
+\bottomrule
+\end{tabularx}
+\caption{The primary, ground-truth-free ranking uses equal-category means of four-fold held-out measurement MSE.}
+\end{table}
+
+\subsection*{Per-category measurement error}
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{ADMM winner}} & \multicolumn{2}{c}{\textbf{GS-PnP winner}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Category} & \textbf{5 images} & \textbf{50 images} & \textbf{5 images} & \textbf{50 images} \\
+\midrule
+CIGS & 0.003846 & 0.003747 & 0.003929 & 0.003773 \\
+Organic & 0.004274 & 0.004375 & 0.004273 & 0.004319 \\
+Perovskite & 0.004348 & 0.004085 & 0.004697 & 0.004135 \\
+Reference & 0.004097 & 0.004871 & 0.004068 & 0.004770 \\
+Silicone & 0.004957 & 0.005508 & 0.004860 & 0.005163 \\
+\bottomrule
+\end{tabular}
+\caption{Category-mean held-out measurement MSE for the selected configurations. The five-image stage has one image per category; the 50-image stage has ten.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.82\linewidth]{figures/category_losses.pdf}
+\caption{Variation of held-out prediction error across the five device categories, for the frozen winner at each validation-set size.}
+\end{figure}
+
+\subsection*{Deliverable files on tuni}
+
+The editable report \texttt{SSDU\_PnP\_Tuning\_Report.tex}, the compiled \texttt{SSDU\_PnP\_Tuning\_Report.pdf} and the two vector figures are kept together under the SSDU experiment's \texttt{report/} directory. The report can be edited and recompiled there when the 450-image evaluation becomes available.
+
+The numerical evidence remains in the same experiment tree: \texttt{prepared/} contains acquisition and fold hashes, the grid and numerical audits; \texttt{pilot5/} and \texttt{full50/} contain all candidate scores and frozen parameter selections; \texttt{full50/runner/} contains execution logs. The Git branch \texttt{ssdu-pnp-tuning-20261108} stores the measurement-only scoring and reconstruction code. The intended 11-method test comparison is recorded in \texttt{comparison\_methods.json}. No source images or archived acquisitions were modified.
+
+\section{Conclusion}
+
+The planned \textbf{SSDU-style ground-truth-free parameter search is complete}. The five-image and 50-image parameter selections coincide for both PnP algorithms within the tested grids. The PnP-ADMM selection is $\rho=0.5$, $\sigma=0.075$; GS-PnP selects $\lambda=0.1$, $\sigma=0.075$, $\tau_0=100/3$. Both 5-image and 50-image selection records remain separately frozen, as required for the eventual test comparison.
+
+This agreement suggests that five images were sufficient to select the same grid point \emph{in this experiment}. It does not establish the equivalence of SSDU tuning and supervised validation tuning for image quality. Temporally correlated PCM noise can bias measurement prediction errors, while thin features in unsampled directions cannot be assessed from the acquired rows alone.
+
+Next, the four frozen SSDU configurations should be evaluated against the seven pre-existing methods over 450 fixed 20\% NPL-default PCM acquisitions. Report PSNR, SSIM, HaarPSI, MSE, runtime and per-category results jointly, with no retuning based on test metrics. Because the wider project has previously inspected these test images, the forthcoming comparison should be described as \emph{retrospective}, not a wholly untouched prospective evaluation.
+
+\renewcommand{\refname}{Primary references}
+\begin{thebibliography}{9}
+\bibitem{yaman2020} B. Yaman et al., ``Self-Supervised Learning of Physics-Guided Reconstruction Neural Networks without Fully-Sampled Reference Data'', \emph{Magnetic Resonance in Medicine}, 84:3172--3191, 2020. See the method for partitioning acquired measurements into data-consistency and loss sets. \url{https://doi.org/10.1002/mrm.28378}.
+\bibitem{hurault2022} S. Hurault, A. Leclaire and N. Papadakis, ``Gradient Step Denoiser for Convergent Plug-and-Play'', \emph{ICLR}, 2022. See Algorithm 1 and the backtracking procedure. \url{https://openreview.net/pdf?id=fPhKeld3Okz}.
+\end{thebibliography}
+\end{document}
