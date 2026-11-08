@@ -61,7 +61,7 @@ Both grids are initial, frozen predeclared choices. Expanding a grid after revie
 
 Step 0: Verify source archive and freeze candidate grid, pilot case list, acquisition checksums, and four fold masks for all 50 validation images. Save as immutable prepared files, with no reconstruction. DONE when preparation tests pass.
 
-Step 1: Implement measurement-only reconstruction adapters for ADMM and GS-PnP. Perform tiny-sample correctness tests, including data-fit/holdout disjointness, correct split operators and the GS final z output. Audit summed-fidelity scale and correlated-noise leakage. Fix the solver normalization convention BEFORE any SSDU search. Freeze the numerical code hashes.
+Step 1: Implement measurement-only reconstruction adapters for ADMM and GS-PnP. Perform tiny-sample correctness tests, including data-fit/holdout disjointness, correct split operators and the GS final z output. Audit summed-fidelity scale and correlated-noise leakage. Fix the solver normalization convention BEFORE any SSDU search. Require deterministic CuBLAS and cuDNN algorithms: otherwise GS-PnP backtracking decisions change between nominally identical runs. Freeze the numerical code hashes.
 
 Step 2: Pilot5, for each of 15 ADMM and 18 GS configurations: reconstruct across 5 validation images and 4 heldout folds. Save per-fold MSE, per-category summary, stopping diagnostics and run times. Select one theta for ADMM and one for GS using only the predefined measurement loss.
 
