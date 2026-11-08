@@ -34,5 +34,17 @@
   "10pct_sampling_patterns": 6553,
   "20pct_sampling_patterns": 13107,
   "gs_pnp_note": "new frozen Step6 paper_final_z, not the separate older GS v2 450-test method",
-  "caution": "10% has transferred 20%-tuned parameters; TV is a test-image 20% oracle"
+  "caution": "10% has transferred 20%-tuned parameters; TV is a test-image 20% oracle",
+  "display_correction": {
+    "status": "corrected",
+    "cmap": "afmhot",
+    "cmap_max": 0.8,
+    "max_pixel_expected_rgb": [
+      255,
+      255,
+      153
+    ],
+    "changed_image_arrays": false,
+    "changed_metrics": false
+  }
 }

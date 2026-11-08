@@ -71,7 +71,13 @@
     "limits": [
       0,
       1
-    ]
+    ],
+    "cmap_max": 0.8,
+    "display_range": [
+      0,
+      1
+    ],
+    "source_correction": "2026-11-08: display only; old config capped afmhot at 1.0 (white), corrected to 0.8 (yellow)"
   },
   "sample_counts": [
     13107,

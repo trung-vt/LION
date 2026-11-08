@@ -1,13 +1,19 @@
-# CIGS 0279: 20% versus 10% NPL-noisy PCM comparison
+# CIGS0279 20% versus 10%: corrected colour-rendered experiment
 
-Completed 7 November 2026 on tuni RTX 4090.
+Correction 8 November 2026: same original PCM observations, reconstructions, metrics and methods, with corrected AFM-hot colormap range. The previous PDF used cmap_max=1.0, mapping bright values to white; this version uses cmap_max=0.8 and maps maximum intensities to yellow (RGB approximately 255,255,153), as shown in the supplied reference image. vmin=0 and vmax=1 in both versions. This correction affects display only.
 
-- `comparison_2pages.pdf`: final landscape PDF, exactly two pages and eight panels each.
-- `page1_20pct_metrics.json`, `page2_10pct_metrics.json`: PSNR, SSIM, HaarPSI and MSE on raw reconstruction arrays.
-- `page2_10pct_measurement.npz`: one newly simulated 10% acquisition, ground truth, mask, noise realisation (plus swap flags), and RNG seeds.
-- `reconstructions/20pct`, `reconstructions/10pct`: eight raw arrays per sampling rate.
-- `protocol.json`: frozen parameters, numerical sources, provenance, hashes and seeds.
-- `verification.json`: 20% replay checks against historical 450-image metrics.
-- `source/`: exact scripts used for preflight, classical/PnP runs, pinned epoch60 C60, and PDF rendering.
+`comparison_2pages.pdf`: repaired PDF, two pages, eight panels per page.
 
-All methods on each page use one shared acquisition. At 20%, the measurement is reused bitwise from the original fixed-NPL experiment. At 10%, the acquisition is newly generated and frozen. The 20%-selected PnP and TV parameters are applied unchanged at 10%. TV uses an image-specific test oracle at 20%; this is not an unbiased validation-tuned baseline. The GS-PnP selected configuration is the frozen Step6 method with paper final z output (not the earlier separate GS-v2 450-image tune). No lambda-map multiplier is applied to C60.
+`source/03_render.py`: corrected reproducible renderer.
+
+`source/03_render_previous_cmap1p0.py`: preserved earlier renderer for audit only.
+
+`reconstructions/`: 16 raw numpy arrays, copied bitwise from v1.
+
+`page2_10pct_measurement.npz`: preserved 10% acquisition from v1.
+
+`page1_20pct_metrics.json`, `page2_10pct_metrics.json`: unchanged original metrics.
+
+`protocol.json`, `verification.json`: correction and integrity metadata.
+
+The other source scripts are the original v1 acquisition/reconstruction scripts; use `source/03_render.py` in this v2 folder to render the corrected PDF. The parameters for 10% were not retuned.
