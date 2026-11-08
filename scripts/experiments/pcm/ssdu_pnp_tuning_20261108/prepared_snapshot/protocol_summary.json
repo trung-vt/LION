@@ -1,0 +1,40 @@
+{
+  "schema": "pcm-ssdu-pnp-5-vs-50-prepared-v1",
+  "status": "prepared_no_solver_tuning",
+  "validation_count": 50,
+  "pilot5": [
+    {
+      "category": "CIGS",
+      "permutation_position_1based": 901,
+      "sample_id": 733
+    },
+    {
+      "category": "Organic",
+      "permutation_position_1based": 903,
+      "sample_id": 8
+    },
+    {
+      "category": "Perovskite",
+      "permutation_position_1based": 905,
+      "sample_id": 283
+    },
+    {
+      "category": "Reference",
+      "permutation_position_1based": 907,
+      "sample_id": 768
+    },
+    {
+      "category": "Silicone",
+      "permutation_position_1based": 909,
+      "sample_id": 589
+    }
+  ],
+  "source_manifest_sha256": "b30ff71a305bead9edda34b34200ca509a7654d7825d333d68ff9231f907ebac",
+  "source_protocol_sha256": "e5a86bca9c6a67ec041b9a780629d9d8c75f0e5dd9106a928d3f25e9e549b848",
+  "num_folds_total": 200,
+  "block_size": 128,
+  "coarse_patterns_preserved": 4096,
+  "fine_patterns_heldout_once": 9011,
+  "no_target_access": true,
+  "test_access": false
+}

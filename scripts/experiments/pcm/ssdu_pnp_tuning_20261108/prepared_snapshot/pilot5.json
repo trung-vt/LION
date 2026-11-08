@@ -1,0 +1,27 @@
+[
+  {
+    "category": "CIGS",
+    "permutation_position_1based": 901,
+    "sample_id": 733
+  },
+  {
+    "category": "Organic",
+    "permutation_position_1based": 903,
+    "sample_id": 8
+  },
+  {
+    "category": "Perovskite",
+    "permutation_position_1based": 905,
+    "sample_id": 283
+  },
+  {
+    "category": "Reference",
+    "permutation_position_1based": 907,
+    "sample_id": 768
+  },
+  {
+    "category": "Silicone",
+    "permutation_position_1based": 909,
+    "sample_id": 589
+  }
+]

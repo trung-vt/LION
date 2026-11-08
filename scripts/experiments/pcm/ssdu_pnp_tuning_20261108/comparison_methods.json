@@ -1,0 +1,97 @@
+{
+  "schema": "pcm-ssdu-11-method-450-test-comparison-v1",
+  "status": "prepared_not_evaluated",
+  "test_protocol": "450 fixed 20%-sampling NPL-default noisy acquisitions; 90 images/category",
+  "test_reference": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_fixed20_npl_default_20261103",
+  "baseline_metrics": "/store/LION/ttv22/pcm/results/pcm/ten_methods_matched_450_20261105_v1/all_ten_methods_450_metrics.csv",
+  "matching_requirement": "Before use, verify every per-image sampled_indices and measurement SHA256 against fixed20 dataset. Recompute any baseline variant with mismatched acquisition or output.",
+  "metrics": [
+    "psnr",
+    "ssim",
+    "haarpsi",
+    "mse"
+  ],
+  "methods": [
+    {
+      "id": "zero_filled",
+      "label": "Zero-filled",
+      "selection": "none",
+      "replay": "reuse_if_sha_matches"
+    },
+    {
+      "id": "spgl1_bp",
+      "label": "SPGL1-BP",
+      "selection": "fixed old preset",
+      "replay": "reuse_if_sha_matches"
+    },
+    {
+      "id": "spgl1_bpdn",
+      "label": "SPGL1-BPDN",
+      "selection": "fixed non-debiased preset",
+      "replay": "reuse_if_sha_matches"
+    },
+    {
+      "id": "pnp_admm_tuned_oracle",
+      "label": "PnP-ADMM-tuned-oracle",
+      "selection": "previous supervised validation, rho=0.5 sigma=0.075",
+      "replay": "reuse_if_sha_matches"
+    },
+    {
+      "id": "gs_pnp_tuned_oracle",
+      "label": "GS-PnP-tuned-oracle",
+      "selection": "previous supervised validation, frozen Step6 v1 PAPER FINAL Z; not historical GS v2 native x",
+      "replay": "requires_check_and_possible_rerun"
+    },
+    {
+      "id": "scalar_tv",
+      "label": "Scalar TV (validation-tuned)",
+      "selection": "lambda=0.011, 1024 iterations; no per-test-image oracle",
+      "replay": "reuse_if_sha_matches"
+    },
+    {
+      "id": "utv_c60",
+      "label": "UTV-C60 (original)",
+      "selection": "epoch60 no multiplier",
+      "replay": "reuse_if_sha_matches"
+    },
+    {
+      "id": "pnp_admm_tuned_5",
+      "label": "PnP-ADMM-tuned-5",
+      "selection": "SSDU 5 images, frozen before Full50",
+      "replay": "needs_SSDU_selection"
+    },
+    {
+      "id": "pnp_admm_tuned_50",
+      "label": "PnP-ADMM-tuned-50",
+      "selection": "SSDU 50 images, same candidate grid",
+      "replay": "needs_SSDU_selection"
+    },
+    {
+      "id": "gs_pnp_tuned_5",
+      "label": "GS-PnP-tuned-5",
+      "selection": "SSDU 5 images, paper final z",
+      "replay": "needs_SSDU_selection"
+    },
+    {
+      "id": "gs_pnp_tuned_50",
+      "label": "GS-PnP-tuned-50",
+      "selection": "SSDU 50 images, paper final z",
+      "replay": "needs_SSDU_selection"
+    }
+  ],
+  "figures": [
+    "11-method side-by-side plots: PSNR/SSIM/HaarPSI/MSE for five categories and all 450",
+    "SD whiskers and raw per-case distribution box plots",
+    "paired differences versus respective supervised-validation-tuned-oracle PnP",
+    "overall quality and wall-time table distinguishing offline tuning from image inference"
+  ],
+  "image_display": {
+    "cmap": "afmhot",
+    "cmap_max": 0.8,
+    "vmin": 0.0,
+    "vmax": 1.0
+  },
+  "no_test_driven_retuning": true,
+  "test_metrics_not_inspected_in_ssdu_selection": true,
+  "known_limitation": "Prior comparisons already examined the 450 test images. Interpret results as a retrospective controlled comparison rather than a fully independent prospective test."
+}
