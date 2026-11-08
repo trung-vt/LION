@@ -1,0 +1,171 @@
+{
+  "GS_expanded_5_search": "planned_not_executed",
+  "all_cached_numeric_metrics_verified": true,
+  "created": "2026-11-08",
+  "files": {
+    "next_gs_ssdu_sweep_v1/PLAN.md": {
+      "bytes": 5922,
+      "sha256": "0e1aad9a3840de0065efa2fd0af792dacd742a1cc63d857f6531a5e8db7076c6"
+    },
+    "next_gs_ssdu_sweep_v1/candidate_grid.json": {
+      "bytes": 10078,
+      "sha256": "0571417111e4ec051061930194c1e3d9c3c8c74ad48acb86dcb7f9020b7a9090"
+    },
+    "report/README_v3.md": {
+      "bytes": 1768,
+      "sha256": "1217622855cd16884db6821388f4e75145a3407048177f0b6925629218f7b782"
+    },
+    "report/SSDU_PnP_Tuning_Report.pdf": {
+      "bytes": 2356785,
+      "sha256": "38983aeccacc3346f27dc060a92a5643fedc93c7b8744612f98750167df2977d"
+    },
+    "report/SSDU_PnP_Tuning_Report.tex": {
+      "bytes": 24206,
+      "sha256": "4a1ae4d3e26f7d4e8944772887af2e565c17b889666045a741bd96daab363680"
+    },
+    "report/archive_v1_tuning_only.pdf": {
+      "bytes": 459489,
+      "sha256": "b789ff8b2081cfa084188f06fd0a18238961513faea8e822c4bb67b95daa107a"
+    },
+    "report/archive_v2_all11_methods.pdf": {
+      "bytes": 609435,
+      "sha256": "65f304382bf6b07963fc41ea1e00c5e7edc6982d28f6ece54d5f7d49c765de35"
+    },
+    "report/figures/candidate_losses.pdf": {
+      "bytes": 19961,
+      "sha256": "4a915ed9f3d5dd263a3158747279875342079e5d7e1c99027be450ce4ba75396"
+    },
+    "report/figures/category_losses.pdf": {
+      "bytes": 20686,
+      "sha256": "5756882498b2eaab18dbbfe5cdb62b0362a4b7f6d0b7e7dd05a0c9e9f8f0ac90"
+    },
+    "source/report_v3.py": {
+      "bytes": 17506,
+      "sha256": "7677a451f4e2cee45e8896571a25da3bf98b2c714f11ae215a9b4784c1c0dd9b"
+    },
+    "source/visual5_replay.py": {
+      "bytes": 11778,
+      "sha256": "87bab9f23330596b5431d13a3e116a75fb66dccad194f18f64cbbb225f357ee1"
+    },
+    "test450/v1/merged/all_450_11_method_metrics.csv": {
+      "bytes": 452831,
+      "sha256": "1ad3dd9f1ff216b20e3cef1f5bf353203b7c02bbbc2e28a274ec40b63ef99a19"
+    },
+    "test450/v1/visual5/PCM_5_Cases_9_Methods_with_Metrics.pdf": {
+      "bytes": 1720465,
+      "sha256": "2a64a181f3c9b309dbb8627f5b8e41dd76e0420228327ea2a9f0f3faabedf2ce"
+    },
+    "test450/v1/visual5/arrays/CIGS_0279.npz": {
+      "bytes": 2039695,
+      "sha256": "ffebfcc0aad8a5bd09ad4585ce99b7083016bac4bcb8e8b354a94cb16581c9ef"
+    },
+    "test450/v1/visual5/arrays/Organic_0331.npz": {
+      "bytes": 1890256,
+      "sha256": "afa0170c25ede77ee04c8b4ba9b91ad87809a00b387514fbe7366fda4d9d8d8c"
+    },
+    "test450/v1/visual5/arrays/Perovskite_0786.npz": {
+      "bytes": 1980894,
+      "sha256": "b9ca447aba73ed4856592ebb096ca821aa6737bc02395ad41a5235b8a48b3b60"
+    },
+    "test450/v1/visual5/arrays/Reference_0279.npz": {
+      "bytes": 2008506,
+      "sha256": "5b3deaae4cc60014b995f82949db8f8774089010b3a5d9e509a8e1f138aaee27"
+    },
+    "test450/v1/visual5/arrays/Silicone_0370.npz": {
+      "bytes": 1968406,
+      "sha256": "e7698ccc829b4533733411d363a22235867d047f0e08248df33e3b28b57e815d"
+    },
+    "test450/v1/visual5/audits/CIGS_0279.json": {
+      "bytes": 5317,
+      "sha256": "204b6a6a882d34f0f7006d1957a7cceaffcc010b1096c1c052563adb177b5ff8"
+    },
+    "test450/v1/visual5/audits/Organic_0331.json": {
+      "bytes": 5319,
+      "sha256": "9f220a0c0b066e1310675067c02a14f3a1afa22f45f0b5190d9d2c9804da02b8"
+    },
+    "test450/v1/visual5/audits/Perovskite_0786.json": {
+      "bytes": 5329,
+      "sha256": "772268f3d2da62377aaaa5559e3f7deaf190edb1a41190b3c34f4366364928f2"
+    },
+    "test450/v1/visual5/audits/Reference_0279.json": {
+      "bytes": 5325,
+      "sha256": "7e655b4b6370109158df2925d79ec51dd7fe8d4fe4fa4eca33a98281de67da72"
+    },
+    "test450/v1/visual5/audits/Silicone_0370.json": {
+      "bytes": 5316,
+      "sha256": "8dfa633501b46c1466c39ebba4d2e8978dc1cf78fd05ad94674e14f2ec371638"
+    },
+    "test450/v1/visual5/figures/9_methods_450_boxplots.pdf": {
+      "bytes": 28876,
+      "sha256": "6964ea966d3030a7c2c983a10c861da96dc7f5294773e2290d554bd9ed6a81c0"
+    },
+    "test450/v1/visual5/figures/9_methods_450_mean_sd.pdf": {
+      "bytes": 28776,
+      "sha256": "288583cc6f75b3ec4df8e6d7d39df3e28372f2c08a5f39bab94450c3606dbcdf"
+    },
+    "test450/v1/visual5/figures/9_methods_by_category_mean_sd.pdf": {
+      "bytes": 60437,
+      "sha256": "74a248ba00b760cb1736d9445ba847db82debf5e3769272fc4018b88bef4f9cb"
+    },
+    "test450/v1/visual5/previews/CIGS_0279.jpg": {
+      "bytes": 255213,
+      "sha256": "4be622f3e230e3099df248464b6de8ce26929521b37d23bad2338a3c3a1a2a0a"
+    },
+    "test450/v1/visual5/previews/Organic_0331.jpg": {
+      "bytes": 233969,
+      "sha256": "27fd636e9a2774bc4aeaa531907d9408666b2e2aa2a4b70a9f80692335f26072"
+    },
+    "test450/v1/visual5/previews/Perovskite_0786.jpg": {
+      "bytes": 251204,
+      "sha256": "640b2e01c9df4ce2d29b630ade9c6e42619ce31d32d06914d572e7ae8e924eed"
+    },
+    "test450/v1/visual5/previews/Reference_0279.jpg": {
+      "bytes": 250425,
+      "sha256": "2aba923b2b0ff704f128cf1ddf61aa90583f1bbe13d20a7ec093a1856c8c4ba9"
+    },
+    "test450/v1/visual5/previews/Silicone_0370.jpg": {
+      "bytes": 327040,
+      "sha256": "ff8009f024fa67ba9ee771fd7a16ee496c8d8408d9d1260899569117ce26107d"
+    },
+    "test450/v1/visual5/selection.json": {
+      "bytes": 1522,
+      "sha256": "d328b792eab7befded2279209d26d84da03250f845b82c102c576679e88da8d0"
+    },
+    "test450/v1/visual5/summary_9_methods.json": {
+      "bytes": 35927,
+      "sha256": "c816473dbd36d915adae9fe107fb363e4c6edc829080e18127b0b709c12b5fa9"
+    }
+  },
+  "five_visual_cases": [
+    {
+      "category": "CIGS",
+      "id": 279
+    },
+    {
+      "category": "Organic",
+      "id": 331
+    },
+    {
+      "category": "Perovskite",
+      "id": 786
+    },
+    {
+      "category": "Reference",
+      "id": 279
+    },
+    {
+      "category": "Silicone",
+      "id": 370
+    }
+  ],
+  "methods": 9,
+  "metric_names": [
+    "psnr",
+    "ssim",
+    "haarpsi",
+    "mse"
+  ],
+  "report_version": "v3",
+  "tuning_5": true,
+  "tuning_50_results_preserved_not_main_comparison": true
+}
