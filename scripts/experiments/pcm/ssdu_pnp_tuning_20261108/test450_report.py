@@ -402,6 +402,11 @@ def update_report(stats, times, paired):
     if not pdf.exists():
         shutil.copy2(oldpdf, pdf)
     source = orig.read_text()
+    source = source.replace("Version 1.0", "Version 2.0")
+    source = source.replace(
+        "when the 450-image evaluation becomes available",
+        "after the 450-image evaluation has been incorporated",
+    )
     source = source.replace(
         "Parameter search: completed and frozen \\quad 450-image evaluation: pending",
         "Parameter search: completed and frozen \\quad 450-image evaluation: complete",
