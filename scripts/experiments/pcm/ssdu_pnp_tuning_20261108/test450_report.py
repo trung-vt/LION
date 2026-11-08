@@ -275,7 +275,7 @@ def charts(table, stats, paired):
             for key, _, _ in METHODS
         ]
         axes.boxplot(
-            values, labels=labels, showfliers=False, whis=1.5, patch_artist=False
+            values, tick_labels=labels, showfliers=False, whis=1.5, patch_artist=False
         )
         axes.set_title(label, fontsize=13, weight="semibold")
         axes.tick_params(axis="x", labelrotation=40, labelsize=8)
