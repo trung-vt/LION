@@ -1,0 +1,106 @@
+{
+  "expanded_minus_gs_pnp_oracle": {
+    "haarpsi": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.13333333333333333,
+      "mean": -0.04265969395637512,
+      "sd": 0.03844879480840108
+    },
+    "mse": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.8844444444444445,
+      "mean": 0.000244260294760655,
+      "sd": 0.00021946685340664237
+    },
+    "psnr": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.11555555555555555,
+      "mean": -2.546582497490777,
+      "sd": 1.9023597314530245
+    },
+    "ssim": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.1111111111111111,
+      "mean": -0.1151254481739468,
+      "sd": 0.0716600693098168
+    }
+  },
+  "expanded_minus_gs_pnp_ssdu5": {
+    "haarpsi": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.7133333333333334,
+      "mean": -0.0007152418295542399,
+      "sd": 0.009234360126115502
+    },
+    "mse": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.22444444444444445,
+      "mean": -1.478528914352258e-07,
+      "sd": 7.206391839583755e-05
+    },
+    "psnr": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.7755555555555556,
+      "mean": -0.027128156026204428,
+      "sd": 0.5306128100876525
+    },
+    "ssim": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.7733333333333333,
+      "mean": -0.0012247334586249457,
+      "sd": 0.03156140042686146
+    }
+  },
+  "expanded_minus_pnp_admm_ssdu5": {
+    "haarpsi": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.0044444444444444444,
+      "mean": -0.061325442923439874,
+      "sd": 0.027385548651702615
+    },
+    "mse": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.9933333333333333,
+      "mean": 0.0003090384598989557,
+      "sd": 0.00018634674656327064
+    },
+    "psnr": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.006666666666666667,
+      "mean": -3.1905830891927085,
+      "sd": 1.326291729426972
+    },
+    "ssim": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.0,
+      "mean": -0.14113531986872355,
+      "sd": 0.058349135837226514
+    }
+  },
+  "expanded_minus_utv_c60": {
+    "haarpsi": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.8266666666666667,
+      "mean": 0.05019307189517551,
+      "sd": 0.05391528899085168
+    },
+    "mse": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.4533333333333333,
+      "mean": -6.531059606156001e-05,
+      "sd": 0.00020995046291670807
+    },
+    "psnr": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.5466666666666666,
+      "mean": 0.26483018663194446,
+      "sd": 1.6161063856348792
+    },
+    "ssim": {
+      "fraction_equal": 0.0,
+      "fraction_greater": 0.10444444444444445,
+      "mean": -0.08921031263139513,
+      "sd": 0.0578852982534698
+    }
+  }
+}
