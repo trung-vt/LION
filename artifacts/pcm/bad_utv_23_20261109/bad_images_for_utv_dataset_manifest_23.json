@@ -1,11 +1,10 @@
 {
   "name": "bad images for UTV",
-  "version": 2,
-  "created_utc": "2026-11-09T17:42:53.680939+00:00",
-  "requested_case_count": 24,
+  "version": 3,
+  "created_utc": "2026-11-09T17:54:59.895552+00:00",
+  "requested_case_count": 23,
   "complete_matched_case_count": 23,
-  "ground_truth_only_case_count": 1,
-  "ground_truth_only_case": "Perovskite_0391",
+  "ground_truth_only_case_count": 0,
   "sampling_ratio": 0.2,
   "noise": "NPL default fixed PCM",
   "methods": [
@@ -17,7 +16,7 @@
     "Scalar TV",
     "UTV C60"
   ],
-  "acquisitions": "14 original stored acquisition files plus 9 exact SHA256-matched deterministic replays; no acquisition exists for Perovskite_0391",
+  "acquisitions": "14 original stored acquisition files plus 9 exact SHA256-matched deterministic replays; all 23 cases have frozen acquisitions",
   "display": "AFM hot colormap, shared vmin=0 vmax=1, metrics from raw arrays",
   "method_notes": {
     "spgl1_bpdn": "fixed pilot noise_rms=0.06, no debias",
@@ -75,7 +74,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Reference_0199.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Reference_0199.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Reference_0199.npy",
       "user_observation": "UTV C60 loses fine details or contrast"
     },
     {
@@ -87,7 +86,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Reference_0260.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Reference_0260.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Reference_0260.npy",
       "user_observation": "Visual observation: all compared methods failed to recover the lines."
     },
     {
@@ -99,7 +98,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Reference_0357.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Reference_0357.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Reference_0357.npy",
       "user_observation": "UTV C60 loses fine details or contrast"
     },
     {
@@ -124,7 +123,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Reference_0793.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Reference_0793.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Reference_0793.npy",
       "user_observation": "Visual observation: all compared methods failed."
     },
     {
@@ -136,7 +135,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/CIGS_0254.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/CIGS_0254.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/CIGS_0254.npy",
       "user_observation": "UTV C60 loses fine details or contrast"
     },
     {
@@ -213,7 +212,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Perovskite_0021.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Perovskite_0021.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Perovskite_0021.npy",
       "user_observation": "UTV C60 loses fine details or contrast"
     },
     {
@@ -264,7 +263,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Perovskite_0187.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Perovskite_0187.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Perovskite_0187.npy",
       "user_observation": "UTV C60 loses fine details or contrast"
     },
     {
@@ -302,17 +301,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Perovskite_0292.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Perovskite_0292.npy",
-      "user_observation": "UTV C60 loses fine details or contrast"
-    },
-    {
-      "category": "Perovskite",
-      "sample_id": 391,
-      "sample_name": "Perovskite_0391",
-      "measurement_sha256": null,
-      "pattern_sha256": null,
-      "acquisition_status": "not in the frozen 450-image test; no stored acquisition",
-      "source": "ground truth only",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Perovskite_0292.npy",
       "user_observation": "UTV C60 loses fine details or contrast"
     },
     {
@@ -324,7 +313,7 @@
       "acquisition_status": "exact deterministic replay matches frozen SHA256",
       "source": "test45 raw baseline plus 450-case GS SSDU-5; replay ADMM tuned-5",
       "gs_tuned5_path": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Silicone_0767.npy",
-      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v2_24/raw_new9/Silicone_0767.npy",
+      "admm_tuned5_cache": "/store/LION/ttv22/pcm/results/pcm/bad_images_for_utv_20261109_v3_23/raw_new9/Silicone_0767.npy",
       "user_observation": "Visual observation: vertical lines remain in zero-fill but are lost by the other methods."
     }
   ]

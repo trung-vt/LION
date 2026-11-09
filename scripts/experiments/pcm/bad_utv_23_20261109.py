@@ -1,13 +1,9 @@
-"""Expand the PCM bad-UTV comparison to 24 nominated image identifiers.
+"""Rebuild 23 selected bad-UTV visual comparisons from the frozen PCM benchmark.
 
-For 23 held-out cases, use the 20% NPL-default frozen benchmark. The 14
-previously archived cases are read bit-for-bit. Nine additional cases reuse
-existing test45 raw reconstructions and deterministically replay exactly the
-same acquisition with a SHA256 check, only to recompute PnP-ADMM-tuned-5.
-Perovskite_0391 is outside the held-out test and has no frozen acquisition;
-its page shows ground truth and clearly labels the missing comparisons.
-
-This is NOT an UTV regularisation-multiplier sweep.
+All 23 images have matched stored 20% sampling and NPL-default noise.
+The original 14 and nine additional cases retain their existing verified
+reconstructions; cached ADMM tuned-5 arrays avoid new solver runs.
+This is a visual comparison, not a UTV parameter-multiplier sweep.
 """
 from __future__ import annotations
 
@@ -51,14 +47,14 @@ from scripts.experiments.pcm.bad_utv_14_20261109 import (
 )
 
 ROOT = Path("/store/LION/ttv22/pcm/results/pcm")
-OUT = ROOT / "bad_images_for_utv_20261109_v2_24"
+OUT = ROOT / "bad_images_for_utv_20261109_v3_23"
 BASELINE_45 = ROOT / "tune1_ternary_20261109_v1/test45/baselines/raw"
 RAW_CACHE = OUT / "raw_new9"
 CASES = OrderedDict(
     [
         ("Reference", (21, 66, 188, 199, 260, 357, 727, 793)),
         ("CIGS", (254, 710, 727, 805, 821, 873)),
-        ("Perovskite", (21, 31, 79, 98, 187, 260, 288, 292, 391)),
+        ("Perovskite", (21, 31, 79, 98, 187, 260, 288, 292)),
         ("Silicone", (767,)),
     ]
 )
@@ -78,7 +74,6 @@ NOTES = {
         767,
     ): "Visual observation: vertical lines remain in zero-fill but are lost by the other methods.",
 }
-MISSING = ("Perovskite", 391)
 KEYS = [method[0] for method in METHODS]
 METRICS = ("psnr", "ssim", "haarpsi", "mse")
 
@@ -176,24 +171,6 @@ def get_new_case(cat, sid, benchmark, cfg, dev, den):
     )
 
 
-def get_missing_case(cfg, dev):
-    cat, sid = MISSING
-    image = get_gt(cfg, cat, sid, dev).cpu().numpy().squeeze().copy()
-    return (
-        {"gt": image},
-        {},
-        {
-            "category": cat,
-            "sample_id": sid,
-            "sample_name": f"{cat}_{sid:04d}",
-            "measurement_sha256": None,
-            "pattern_sha256": None,
-            "acquisition_status": "not in the frozen 450-image test; no stored acquisition",
-            "source": "ground truth only",
-        },
-    )
-
-
 def render(pages):
     plt.rcParams.update(
         {
@@ -206,18 +183,17 @@ def render(pages):
     )
     cmap = make_colormap("afmhot", 0.8)
     cmap.set_bad("white")
-    path = OUT / "PCM_Bad_UTV_24_20pct_NPL_7_Methods.pdf"
+    path = OUT / "PCM_Bad_UTV_23_20pct_NPL_7_Methods.pdf"
     with PdfPages(
         path,
         metadata={
-            "Title": "24 selected PCM images: matched 20 percent NPL-default, 7 methods",
+            "Title": "23 selected PCM images: matched 20 percent NPL-default, 7 methods",
             "Author": "PCM reconstruction study",
-            "Subject": "23 verified paired cases; one unavailable acquisition clearly labelled",
+            "Subject": "23 verified paired cases, all with matched stored acquisitions",
         },
     ) as pdf:
         for page_num, (images, scores, meta) in enumerate(pages, 1):
             cat, sid = meta["category"], meta["sample_id"]
-            missing = (cat, sid) == MISSING
             fig = plt.figure(figsize=(16.55, 10.2))
             g = fig.add_gridspec(
                 2,
@@ -238,11 +214,7 @@ def render(pages):
                 fontsize=20,
                 weight="bold",
             )
-            caption = (
-                "No stored acquisition: ground truth only"
-                if missing
-                else "Stored 20% multilevel Hadamard sampling | NPL-default noise | identical acquisition"
-            )
+            caption = "Stored 20% multilevel Hadamard sampling | NPL-default noise | identical acquisition"
             fig.text(
                 0.5,
                 0.932,
@@ -250,7 +222,7 @@ def render(pages):
                 ha="center",
                 va="top",
                 fontsize=11.7,
-                color=("#a12825" if missing else "#333333"),
+                color="#333333",
             )
             for j, (key, label, _, metric_key) in enumerate(METHODS):
                 ax = fig.add_subplot(g[j // 4, j % 4])
@@ -307,23 +279,13 @@ def render(pages):
                 weight="bold",
                 va="top",
             )
-            if missing:
-                desc = (
-                    "Perovskite_0391 was not among the\n"
-                    "frozen 450 test images. Its 20%\n"
-                    "NPL-default acquisition and the\n"
-                    "six reconstructions are unavailable.\n\n"
-                    "No new noise was simulated.\n"
-                    "No metric has been invented."
-                )
-            else:
-                desc = (
-                    "All methods share the exact frozen\n"
-                    "measurement and sampling indices.\n\n"
-                    "Scalar TV: lambda=0.011, 1024 iterations.\n"
-                    "UTV: original C60 checkpoint.\n"
-                    "PnP variants: frozen SSDU-5 choices.\n\n" + annotation
-                )
+            desc = (
+                "All methods share the exact frozen\n"
+                "measurement and sampling indices.\n\n"
+                "Scalar TV: lambda=0.011, 1024 iterations.\n"
+                "UTV: original C60 checkpoint.\n"
+                "PnP variants: frozen SSDU-5 choices.\n\n" + annotation
+            )
             noteax.text(
                 0.05,
                 0.69,
@@ -347,9 +309,7 @@ def render(pages):
             )
             cbar.ax.tick_params(labelsize=9)
             sha_note = (
-                "No acquired measurement"
-                if missing
-                else f"Measurement SHA256: {meta['measurement_sha256'][:20]}..."
+                f"Measurement SHA256: {meta['measurement_sha256'][:20]}..."
                 f"    Pattern SHA256: {meta['pattern_sha256'][:20]}..."
             )
             fig.text(0.028, 0.012, sha_note, fontsize=8, color="#555555", va="bottom")
@@ -368,7 +328,7 @@ def render(pages):
                 page_num,
                 len(pages),
                 meta["sample_name"],
-                "GT_ONLY" if missing else "VERIFIED",
+                "VERIFIED",
                 flush=True,
             )
     return path
@@ -377,15 +337,13 @@ def render(pages):
 def main():
     assert os.getenv("LION_DATA_PATH"), "LION_DATA_PATH required"
     assert RHO == 0.5 and SIGMA == 0.075, "Unexpected ADMM tuned-5 parameters"
-    assert sum(map(len, CASES.values())) == 24
+    assert sum(map(len, CASES.values())) == 23
     assert len(ORIGINAL_14) == 14
     OUT.mkdir(parents=True, exist_ok=True)
     table = load_metrics()
     cfg, ids = oldbench.config_and_ids()
-    assert len(ids) == 90 and 391 not in ids
-    assert all(
-        sid in ids for c, vals in CASES.items() for sid in vals if (c, sid) != MISSING
-    )
+    assert len(ids) == 90
+    assert all(sid in ids for cat, vals in CASES.items() for sid in vals)
     dev = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.set_num_threads(3)
     den = None
@@ -399,11 +357,11 @@ def main():
                     "acquisition_status"
                 ] = "stored acquisition archive, SHA256 verified"
                 meta["source"] = "previous 14-case raw archive"
-            elif (cat, sid) == MISSING:
-                images, scores, meta = get_missing_case(cfg, dev)
             else:
-                if den is None:
-                    assert dev.type == "cuda", "GPU required for exact ADMM replay"
+                if den is None and not (RAW_CACHE / f"{cat}_{sid:04d}.npy").is_file():
+                    assert (
+                        dev.type == "cuda"
+                    ), "GPU required only if ADMM cache is missing"
                     den = build_grayscale_denoiser(
                         deepcopy(QUICK_METHODS["pnp_admm_drunet"].denoiser), dev
                     )
@@ -427,9 +385,9 @@ def main():
                     )
             print("CASE_OK", f"{cat}_{sid:04d}", meta["acquisition_status"], flush=True)
 
-    assert len(pages) == 24 and len(metric_rows) == 23 * 6
+    assert len(pages) == 23 and len(metric_rows) == 23 * 6
     pdf_path = render(pages)
-    csv_path = OUT / "PCM_Bad_UTV_24_20pct_NPL_7_Methods_metrics.csv"
+    csv_path = OUT / "PCM_Bad_UTV_23_20pct_NPL_7_Methods_metrics.csv"
     with csv_path.open("w", newline="", encoding="utf8") as fh:
         writer = csv.DictWriter(
             fh,
@@ -447,18 +405,17 @@ def main():
 
     manifest = {
         "name": "bad images for UTV",
-        "version": 2,
+        "version": 3,
         "created_utc": datetime.now(timezone.utc).isoformat(),
-        "requested_case_count": 24,
+        "requested_case_count": 23,
         "complete_matched_case_count": 23,
-        "ground_truth_only_case_count": 1,
-        "ground_truth_only_case": "Perovskite_0391",
+        "ground_truth_only_case_count": 0,
         "sampling_ratio": 0.20,
         "noise": "NPL default fixed PCM",
         "methods": [item[1] for item in METHODS],
         "acquisitions": (
             "14 original stored acquisition files plus 9 exact SHA256-"
-            "matched deterministic replays; no acquisition exists for Perovskite_0391"
+            "matched deterministic replays; all 23 cases have frozen acquisitions"
         ),
         "display": "AFM hot colormap, shared vmin=0 vmax=1, metrics from raw arrays",
         "method_notes": {
@@ -470,7 +427,7 @@ def main():
         },
         "cases": [meta for _, _, meta in pages],
     }
-    manifest_path = OUT / "bad_images_for_utv_dataset_manifest_24.json"
+    manifest_path = OUT / "bad_images_for_utv_dataset_manifest_23.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf8")
     print("PDF", pdf_path, pdf_path.stat().st_size, flush=True)
     print("CSV", csv_path, csv_path.stat().st_size, flush=True)
