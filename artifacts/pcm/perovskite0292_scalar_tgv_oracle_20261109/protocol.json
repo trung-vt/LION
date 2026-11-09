@@ -1,30 +1,17 @@
 {
   "case": "Perovskite_0292",
-  "data": "frozen 20% multilevel Hadamard, default NPL noise",
   "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
   "sampled_indices_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
-  "solver": "existing LION.models.AdaptiveTGVPCMNetwork using LION.classical_algorithms.pdhg_mrpro and MRPro operators",
-  "objective": "0.5||Au-y||^2 + alpha1||grad(u)-v||_1 + alpha0||symgrad(v)||_1",
-  "norm": "anisotropic/componentwise L1 (per LION implementation)",
-  "parameters_selected": {
-    "stage": "selected_best",
-    "alpha1": 0.028284271247461905,
-    "alpha0": 0.01,
-    "ratio": 0.35355339059327373,
-    "iterations": 8192,
-    "runtime_s": 12.197812048951164,
-    "psnr": 30.43625831604004,
-    "ssim": 0.7402150630950928,
-    "haarpsi": 0.7345375418663025,
-    "mse": 0.0009044279577210546
-  },
-  "tuning": "PSNR oracle on same image; independent positive scalar alpha1 and alpha0",
-  "pdhg_tau": 0.18,
-  "pdhg_sigma": 0.18,
-  "pdhg_theta": 1.0,
-  "TGV_iterations": 8192,
-  "pnp_admm": "frozen tuned-5 parameters, no oracle",
+  "new_method": "PSNR-tuned scalar TV with existing MRPro-backed PDHG",
+  "tv_lambda": 0.024098248423001532,
+  "tv_iterations": 8192,
+  "tgv_alpha1": 0.028284271247461905,
+  "tgv_alpha0": 0.01,
+  "tgv_iterations": 8192,
   "utv_rho": 0.3834423836119898,
+  "utv_iterations": 512,
+  "validation_tuned_tv_psnr": 29.7856388092041,
+  "score_source": "ground truth, single-image oracle",
   "comparison_metrics": {
     "PnP-ADMM-tuned-5": {
       "psnr": 32.369354248046875,
@@ -32,22 +19,26 @@
       "haarpsi": 0.8176472783088684,
       "mse": 0.0005795144243165851
     },
-    "UTV C60 (best rho=0.38344)": {
+    "UTV C60 (rho=0.38344)": {
       "psnr": 29.408306121826172,
       "ssim": 0.8417503833770752,
       "haarpsi": 0.6814417839050293,
       "mse": 0.0011459594825282693
     },
-    "Scalar TGV (MRPro-PDHG)": {
+    "Scalar TV (best lambda=0.024098)": {
+      "psnr": 30.369714736938477,
+      "ssim": 0.8140621185302734,
+      "haarpsi": 0.7257879376411438,
+      "mse": 0.0009183925576508045
+    },
+    "Scalar TGV-2 (best alpha1=0.02828, alpha0=0.01)": {
       "psnr": 30.43625831604004,
       "ssim": 0.7402150630950928,
       "haarpsi": 0.7345375418663025,
       "mse": 0.0009044279577210546
     }
   },
-  "fairness": "different algorithm iterations and per-iteration cost; compare image quality only, not speed",
-  "references": [
-    "https://doi.org/10.1137/090769521",
-    "https://docs.mrpro.rocks/"
-  ]
+  "original_tgv_pdf": "/store/LION/ttv22/pcm/results/pcm/perovskite0292_scalar_tgv_oracle_20261109_v1/Perovskite_0292_TGV_vs_PnP_ADMM_vs_UTV_Best.pdf",
+  "tv_search_summary": "/store/LION/ttv22/pcm/results/pcm/perovskite0292_scalar_tv_oracle_20261109_v1/summary.json",
+  "tgv_search_summary": "/store/LION/ttv22/pcm/results/pcm/perovskite0292_scalar_tgv_oracle_20261109_v1/selected.json"
 }

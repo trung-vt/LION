@@ -1,0 +1,38 @@
+{
+  "case": "Perovskite_0292",
+  "status": "complete",
+  "method": "LION AdaptiveTVPCMNetwork MRPro-backed PDHG",
+  "objective": "0.5||Au-y||_2^2 + lambda||grad u||_1, componentwise L1",
+  "oracle": "lambda chosen on Perovskite_0292 ground-truth PSNR",
+  "fidelity": "same frozen 20% NPL-default noisy differential Hadamard measurement as TGV2",
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "indices_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "initialization": "zero",
+  "tau": 0.18,
+  "sigma": 0.18,
+  "theta": 1.0,
+  "stages": {
+    "coarse_512": 21,
+    "fine_512": 33,
+    "validate_2048": 8,
+    "validate_4096": 4,
+    "validate_8192": 3
+  },
+  "best": {
+    "lambda": 0.024098248423001532,
+    "iterations": 8192,
+    "elapsed_s": 7.742277745855972,
+    "psnr": 30.369714736938477,
+    "ssim": 0.8140621185302734,
+    "haarpsi": 0.7257879376411438,
+    "mse": 0.0009183925576508045
+  },
+  "archived_val_tuned_TV": {
+    "lambda": 0.011,
+    "iterations": 1024,
+    "psnr": 29.7856388092041,
+    "ssim": 0.717168390750885,
+    "haarpsi": 0.7567187547683716
+  },
+  "caution": "finite grid + refinement; not mathematically certified global optimum"
+}

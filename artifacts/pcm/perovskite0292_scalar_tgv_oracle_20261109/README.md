@@ -55,3 +55,44 @@ solver/denoiser iterations with different per-iteration computational costs.
 - Bredies, Kunisch and Pock (2010), Total Generalized Variation: https://doi.org/10.1137/090769521
 - MRPro documentation: https://docs.mrpro.rocks/
 - MRPro source: https://github.com/PTB-MR/mrpro
+
+## 2026-11-09 update: add GT-tuned best scalar TV to the TGV-2 comparison
+
+This revision **replaces the main 2-page PDF** with a 5-panel comparison
+showing ground truth, PnP-ADMM-tuned-5, best scaled C60, per-image best
+scalar TV and per-image best scalar TGV-2.
+
+The full-image and matching crop panels both include scalar TV. Page 2
+additionally includes scalar TV PSNR-vs-lambda and the existing TGV-2
+2D weight sweep. All methods use the exact same frozen PCM acquisition.
+
+- TV lambda=0.024098248423001532, 8192 PDHG iterations.
+- TV metrics: PSNR=30.3697147369 dB, SSIM=0.8140621185,
+  HaarPSI=0.7257879376, MSE=0.000918392558.
+- TV solver: existing LION AdaptiveTVPCMNetwork with MRPro-backed
+  componentwise L1 TV, tau=sigma=0.18, theta=1, zero initial image.
+- TV search: 21 coarse lambda settings, 33 fine lambda settings at
+  512 steps, then top 8 at 2048, top 4 at 4096 and top 3 at 8192.
+- TGV-2 previous best unchanged: alpha1=0.028284271247461905,
+  alpha0=0.01, 8192 iterations, PSNR=30.4362583160 dB.
+- Frozen PnP and C60 outputs were reused, without re-tuning.
+
+Both TV and TGV-2 weights were selected using Perovskite 0292 ground
+truth (oracle experiment, not test-set unbiased selection). The earlier
+validation-tuned TV lambda=0.011 at 1024 iterations gives
+PSNR=29.7856388092 dB, and is included only as a numeric reference.
+The new TV choice is **not** the earlier population-validation lambda.
+
+New files:
+- tv_best_scalar.npy, tv_oracle_search_summary.json
+- tv_coarse_512.csv, tv_fine_512.csv, tv_validate_2048.csv,
+  tv_validate_4096.csv, tv_validate_8192.csv
+- five_way_raw_arrays.npz: complete raw GT, acquisition, PnP, C60,
+  TV and TGV images with parameter values
+- protocol_before_tv.json and
+  Perovskite_0292_TGV_Original_Without_TV.pdf preserve prior report
+- scripts/experiments/pcm/perovskite0292_scalar_tv_oracle_20261109.py
+- scripts/experiments/pcm/perovskite0292_tgv_with_tv_report_20261109.py
+
+The main comparison_metrics.csv, protocol.json, PDF and PNG are updated
+to include TV; the full experiment ZIP should now contain all materials.
