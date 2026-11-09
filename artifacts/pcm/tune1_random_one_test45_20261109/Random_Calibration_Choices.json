@@ -1,0 +1,310 @@
+{
+  "alias_note": "pnp_admm_ssdu5 is exactly the previously validation-tuned ADMM configuration, not both labels",
+  "draw_rule": "one independent uniform draw among 5 sorted frozen calibration IDs for each category and PnP method",
+  "excluded_methods": [
+    "pnp_admm_oracle",
+    "gs_pnp_expanded5"
+  ],
+  "image_category_order": [
+    "CIGS",
+    "Organic",
+    "Perovskite",
+    "Reference",
+    "Silicone"
+  ],
+  "methods_for_comparison": [
+    "zero_filled",
+    "spgl1_bp",
+    "spgl1_bpdn",
+    "pnp_admm_ssdu5",
+    "gs_pnp_oracle",
+    "tv",
+    "utv_c60",
+    "gs_pnp_ssdu5",
+    "pnp_admm_tune1",
+    "gs_pnp_tune1"
+  ],
+  "n_new_tune1_reconstructions": {
+    "admm": 45,
+    "gs": 45
+  },
+  "n_unique_test_images": 45,
+  "noise": "same NPL-default stored 20%-sampling acquisition for all methods",
+  "random_seed_string": "PCM-test45-one-calibration-2026-11-09-v1",
+  "schema": "PCM-Test45-Random-Tune1-PerCategory-20261109-v1",
+  "selected_calibrations": {
+    "admm": {
+      "CIGS": {
+        "calibration_sample_id": 768,
+        "draw_pool": [
+          8,
+          530,
+          589,
+          733,
+          768
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_admm",
+          "consecutive_passes": 5,
+          "eps_abs": 0.0001,
+          "eps_rel": 0.001,
+          "max_iterations": 100,
+          "min_iterations": 20,
+          "rho": 0.782973528234,
+          "sigma": 0.0519615242271
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 4,
+        "selection_file_sha256": "a278aae8d72e3c7ae1b640d9bd6cd931238041b04d1f8eb08fa89c5e226ca7b4",
+        "validation_sample_source_sha256": "008136f12b8f0fd5576289b08cf1bdd161b4fc4e937c44ff5ac88f15912070c8",
+        "winner_measurement_ssdu_mse": 0.0038248194803662794
+      },
+      "Organic": {
+        "calibration_sample_id": 768,
+        "draw_pool": [
+          158,
+          530,
+          589,
+          733,
+          768
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_admm",
+          "consecutive_passes": 5,
+          "eps_abs": 0.0001,
+          "eps_rel": 0.001,
+          "max_iterations": 100,
+          "min_iterations": 20,
+          "rho": 0.782973528234,
+          "sigma": 0.0786222418263
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 4,
+        "selection_file_sha256": "fbf3a6385d21b58ad172d65414025df25835bc9d0564435b1677818e4888aeac",
+        "validation_sample_source_sha256": "9c95d9d764ceb69cc1aff20afb577ccb0718488bd22f6f5e63f8f64e25fda29e",
+        "winner_measurement_ssdu_mse": 0.004321114460631651
+      },
+      "Perovskite": {
+        "calibration_sample_id": 8,
+        "draw_pool": [
+          8,
+          45,
+          733,
+          768,
+          917
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_admm",
+          "consecutive_passes": 5,
+          "eps_abs": 0.0001,
+          "eps_rel": 0.001,
+          "max_iterations": 100,
+          "min_iterations": 20,
+          "rho": 0.782973528234,
+          "sigma": 0.0519615242271
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 0,
+        "selection_file_sha256": "34a5de23978cf594d0c8fe6867885b7f2c8cee103b49fe4fe34b6b9adc7f8b6d",
+        "validation_sample_source_sha256": "0b36da5b6ff95eba37a25aa39917cbd09d07c70bc1bab43777a4be72d0e12776",
+        "winner_measurement_ssdu_mse": 0.004467277274372112
+      },
+      "Reference": {
+        "calibration_sample_id": 8,
+        "draw_pool": [
+          8,
+          45,
+          158,
+          396,
+          768
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_admm",
+          "consecutive_passes": 5,
+          "eps_abs": 0.0001,
+          "eps_rel": 0.001,
+          "max_iterations": 100,
+          "min_iterations": 20,
+          "rho": 0.938530766012,
+          "sigma": 0.0519615242271
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 0,
+        "selection_file_sha256": "8020e2d99a2abf517ed98aa36e1e2a0d23c90198ab5c1f606ce739031056566a",
+        "validation_sample_source_sha256": "4584da18e79fa54bd25a69d6dd67d8c6c63f85df920d8dd536f7addae3557fa8",
+        "winner_measurement_ssdu_mse": 0.005230904977346815
+      },
+      "Silicone": {
+        "calibration_sample_id": 8,
+        "draw_pool": [
+          8,
+          158,
+          283,
+          589,
+          733
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_admm",
+          "consecutive_passes": 5,
+          "eps_abs": 0.0001,
+          "eps_rel": 0.001,
+          "max_iterations": 100,
+          "min_iterations": 20,
+          "rho": 0.653199200405,
+          "sigma": 0.124564360284
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 0,
+        "selection_file_sha256": "c99b9cf8e0b845dd037306b157ae505848efe11d5335cfd0e9e27a75d768d307",
+        "validation_sample_source_sha256": "0c29d5c4f5cd753cfcb48cc663578e8656c1d309a4b8d8b82aca510ed9f2569e",
+        "winner_measurement_ssdu_mse": 0.005262042510720091
+      }
+    },
+    "gs": {
+      "CIGS": {
+        "calibration_sample_id": 530,
+        "draw_pool": [
+          8,
+          530,
+          589,
+          733,
+          768
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_gs",
+          "eta_backtracking": 0.9,
+          "gamma_backtracking": 0.1,
+          "lambda": 0.0928317766723,
+          "max_accepted_iterations": 100,
+          "max_backtracking_attempts": 20,
+          "output": "paper_final_z",
+          "sigma": 0.0639323824352,
+          "stopping_eps": 1e-06,
+          "stopping_policy": "deepinv_relative_objective",
+          "tau0": 4.8330743726
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 1,
+        "selection_file_sha256": "b7d004a6e67692acf019804287fdab9db8c3099669089170ad04222a809b826e",
+        "validation_sample_source_sha256": "ef3af6b80d626624acda85311cbb3034f2f4e91913abf34c8538e5f459776613",
+        "winner_measurement_ssdu_mse": 0.0036330789258446116
+      },
+      "Organic": {
+        "calibration_sample_id": 158,
+        "draw_pool": [
+          158,
+          530,
+          589,
+          733,
+          768
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_gs",
+          "eta_backtracking": 0.9,
+          "gamma_backtracking": 0.1,
+          "lambda": 0.0485017495823,
+          "max_accepted_iterations": 100,
+          "max_backtracking_attempts": 20,
+          "output": "paper_final_z",
+          "sigma": 0.0474341649025,
+          "stopping_eps": 1e-06,
+          "stopping_policy": "deepinv_relative_objective",
+          "tau0": 46.5542184237
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 0,
+        "selection_file_sha256": "dfcf043cf49949ab2f8fe989f2b95fcdfef87f46cd375acb561f58a5fe264add",
+        "validation_sample_source_sha256": "278649dfaf5bcca7cc277d1da89976926bb339a90319a99b894f1259ac251a34",
+        "winner_measurement_ssdu_mse": 0.004241465016242259
+      },
+      "Perovskite": {
+        "calibration_sample_id": 768,
+        "draw_pool": [
+          8,
+          45,
+          733,
+          768,
+          917
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_gs",
+          "eta_backtracking": 0.9,
+          "gamma_backtracking": 0.1,
+          "lambda": 0.057048235905,
+          "max_accepted_iterations": 100,
+          "max_backtracking_attempts": 20,
+          "output": "paper_final_z",
+          "sigma": 0.0539072049571,
+          "stopping_eps": 1e-06,
+          "stopping_policy": "deepinv_relative_objective",
+          "tau0": 4.8330743726
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 3,
+        "selection_file_sha256": "89719e4937585e96a37be10007769a2c594d99e7b614aa93335a45d89925fd19",
+        "validation_sample_source_sha256": "0fc62e0c0af5c74524ba0c39ed1ab27292088c6dd4d1647166c02f9dee4c1caa",
+        "winner_measurement_ssdu_mse": 0.003701892414039404
+      },
+      "Reference": {
+        "calibration_sample_id": 8,
+        "draw_pool": [
+          8,
+          45,
+          158,
+          396,
+          768
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_gs",
+          "eta_backtracking": 0.9,
+          "gamma_backtracking": 0.1,
+          "lambda": 0.208987703655,
+          "max_accepted_iterations": 100,
+          "max_backtracking_attempts": 20,
+          "output": "paper_final_z",
+          "sigma": 0.0639323824352,
+          "stopping_eps": 1e-06,
+          "stopping_policy": "deepinv_relative_objective",
+          "tau0": 28.8972700405
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 0,
+        "selection_file_sha256": "69c4dab8ac67078b9d78fac0603a8dba563e1544856ceda47a319ed97a0193ef",
+        "validation_sample_source_sha256": "4584da18e79fa54bd25a69d6dd67d8c6c63f85df920d8dd536f7addae3557fa8",
+        "winner_measurement_ssdu_mse": 0.005198276717925477
+      },
+      "Silicone": {
+        "calibration_sample_id": 8,
+        "draw_pool": [
+          8,
+          158,
+          283,
+          589,
+          733
+        ],
+        "frozen_config": {
+          "candidate_id": "frozen_gs",
+          "eta_backtracking": 0.9,
+          "gamma_backtracking": 0.1,
+          "lambda": 0.0928317766723,
+          "max_accepted_iterations": 100,
+          "max_backtracking_attempts": 20,
+          "output": "paper_final_z",
+          "sigma": 0.106645641485,
+          "stopping_eps": 1e-06,
+          "stopping_policy": "deepinv_relative_objective",
+          "tau0": 22.7669946045
+        },
+        "n_test_images": 9,
+        "selected_index_in_sorted_pool": 0,
+        "selection_file_sha256": "ec4bdfdc7522363fbec3df680795f7a1339fa9145cb0ac6332eab861d10a3c01",
+        "validation_sample_source_sha256": "0c29d5c4f5cd753cfcb48cc663578e8656c1d309a4b8d8b82aca510ed9f2569e",
+        "winner_measurement_ssdu_mse": 0.005501605852692168
+      }
+    }
+  },
+  "status": "frozen_before_test_access",
+  "test45_file_sha256": "bdd3730b18c9d07f65c129b13c313656c6dbf2bfb14c0ae58bb9a0fa6cea3e0b",
+  "using_test_metrics_for_selection": false,
+  "validation_file_sha256": "34c128fef168e236bfffcd898cfe87bd01e4f1d29067a77a0261cacdbd492b6d"
+}

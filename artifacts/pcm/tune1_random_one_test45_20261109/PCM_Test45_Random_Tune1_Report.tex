@@ -1,0 +1,251 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=20mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,tabularx,graphicx,xcolor,hyperref,enumitem,fancyhdr,float,pdfpages}
+\hypersetup{colorlinks=true,urlcolor=blue!60!black,linkcolor=blue!60!black}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.45em}
+\setlength{\emergencystretch}{3em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=.1em}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small PCM / Random Tune-1 / test set 45}
+\fancyhead[R]{\small 9 November 2026}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+\begin{document}
+{\LARGE\bfseries Random category-specific Tune-1 PnP for PCM}\\[4pt]
+{\large Matched test set 45, 20\% Hadamard sampling, NPL-default noise}\\[5pt]
+{\color{gray} Completed reconstruction experiment, version 1.0, 9 November 2026}\\[3pt]
+{\color{gray} Ten requested methods; five random calibration choices per PnP family}
+\par\medskip\hrule
+
+\section{Executive summary}
+We evaluate practical category-specific Tune-1 parameters
+selected \emph{without ground truth} from noisy validation data.
+For each of PnP-ADMM and GS-PnP, we draw one of five frozen
+calibration configurations \emph{independently} for each device
+category. These choices are frozen before test metrics are examined.
+The same selected configuration is applied to all nine test images
+from that category. Test set 45 is a fixed stratified subset
+(9 images per category) of the original test set 450
+(90 images per category).
+
+All ten requested methods use the \emph{same frozen noisy
+measurement and Hadamard mask for each test image},
+with 20\% multilevel sampling, $J=8$, coarse $J_c=6$ and
+the original NPL-default PCM noise realisation.
+The two new methods contribute 45 reconstructions each,
+with no additional parameter search on test data.
+
+\textbf{Main result:} On 45 matched test images, the randomly chosen PnP-ADMM Tune-1 configuration averaged 35.342 dB, compared with 35.554 dB for PnP-ADMM-tuned-5 (paired difference -0.212 dB). GS-PnP Tune-1 averaged 32.426 dB, compared with 32.336 dB for GS-PnP-tuned-5 (paired difference +0.089 dB).
+
+We report PSNR, SSIM, HaarPSI and MSE on raw (unclipped)
+reconstructions. These are \emph{retrospective} measurements:
+the full test set has been examined in related earlier studies,
+and one random draw alone cannot establish the variability of
+Tune-1 performance across calibration choices.
+
+\section{Random selection and experimental protocol}
+All five validation configurations per category were already
+selected separately for both PnP families using four-fold
+SSDU measurement-prediction loss and log-space ternary search.
+The 25 ADMM configurations and 25 GS configurations were
+\emph{frozen before this new comparison}.
+
+We made ten independent uniform draws, one per
+(category, PnP family), with deterministic random seed
+\texttt{PCM-test45-one-calibration-2026-11-09-v1}.
+The selection file stores the five eligible calibration IDs
+in sorted order, selected index, exact frozen parameter values
+and each source file's SHA256. No image PSNR or category-level
+reconstruction metric informed the random choice.
+
+\begin{table}[H]
+\centering\tiny
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{\textbf{ADMM Tune-1}} &
+\multicolumn{5}{c}{\textbf{GS-PnP Tune-1}}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-10}
+Category & Calibration ID & $\rho$ & $\sigma$ & SSDU risk &
+Calibration ID & $\lambda$ & $\sigma$ & $\tau_0$ & SSDU risk\\
+\midrule
+CIGS & 0768 & 0.78297 & 0.05196 & 0.0038248 & 0530 & 0.09283 & 0.06393 & 4.833 & 0.0036331 \\
+Organic & 0768 & 0.78297 & 0.07862 & 0.0043211 & 0158 & 0.04850 & 0.04743 & 46.554 & 0.0042415 \\
+Perovskite & 0008 & 0.78297 & 0.05196 & 0.0044673 & 0768 & 0.05705 & 0.05391 & 4.833 & 0.0037019 \\
+Reference & 0008 & 0.93853 & 0.05196 & 0.0052309 & 0008 & 0.20899 & 0.06393 & 28.897 & 0.0051983 \\
+Silicone & 0008 & 0.65320 & 0.12456 & 0.0052620 & 0008 & 0.09283 & 0.10665 & 22.767 & 0.0055016 \\
+\bottomrule
+\end{tabular}}
+\caption{One calibration configuration randomly drawn from five
+validation-tuned choices in each category. Each SSDU risk is the
+held-out measurement-prediction error for that individual
+validation acquisition, not an image-space test MSE.}
+\end{table}
+
+New reconstructions: PnP-ADMM on RTX 4070 and GS-PnP
+on RTX 4090, each with unchanged pretrained denoiser weights
+and original solver stopping rules. Model and measurement
+normalisation were not altered between tuning and testing.
+The test45 measurement and pattern SHA256s were checked against
+the historical full test set 450 archive.
+
+\section{Methods compared}
+We report exactly ten method labels:
+zero-filled, SPGL1-BP, SPGL1-BPDN, PnP-ADMM-tuned-5,
+GS-PnP-tuned-oracle, scalar TV, UTV-C60,
+GS-PnP-tuned-5, PnP-ADMM Tune-1 and GS-PnP Tune-1.
+The supervised-validation-selected \emph{PnP-ADMM oracle label}
+is intentionally omitted. PnP-ADMM-tuned-5 is shown once,
+even though the original SSDU-tuned-5 settings coincided with
+that reference. The GS-PnP expanded SSDU-5 method is also
+intentionally omitted.
+
+The eight historical reference scores are taken from the
+same fixed 450-image benchmark after checking each
+category, image ID, noisy measurement hash and sampling
+mask hash. Their established hyperparameters are unchanged.
+Missing historical raw-image arrays were rerun solely for
+visualisation under those original numerical settings.
+SPGL1-BP can show small differences in a later numerical
+replay: the archived benchmark metrics remain authoritative
+for the main comparison, and visual captions for BP
+use metrics calculated on the displayed replayed array.
+No baseline parameter was adjusted to fit test results.
+
+\section{Quantitative results}
+\subsection*{Overall metrics, 45 unique test images}
+\begin{table}[H]
+\centering\tiny
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Method & PSNR (dB) & SSIM & HaarPSI & MSE\\
+\midrule
+Zero-filled & 24.97 $\pm$ 1.95 & 0.4822 $\pm$ 0.0506 & 0.5522 $\pm$ 0.0483 & 3.517e-03 $\pm$ 1.628e-03 \\
+SPGL1-BP & 25.39 $\pm$ 1.47 & 0.4359 $\pm$ 0.0316 & 0.6464 $\pm$ 0.0705 & 3.065e-03 $\pm$ 1.112e-03 \\
+SPGL1-BPDN & 29.28 $\pm$ 3.35 & 0.7126 $\pm$ 0.1040 & 0.6593 $\pm$ 0.0950 & 1.549e-03 $\pm$ 1.106e-03 \\
+PnP-ADMM tuned-5 & 35.55 $\pm$ 3.59 & 0.8957 $\pm$ 0.0803 & 0.8810 $\pm$ 0.0609 & 3.752e-04 $\pm$ 2.610e-04 \\
+GS-PnP oracle & 34.83 $\pm$ 3.52 & 0.8656 $\pm$ 0.0869 & 0.8608 $\pm$ 0.0699 & 4.323e-04 $\pm$ 2.750e-04 \\
+Scalar TV & 29.97 $\pm$ 1.92 & 0.7178 $\pm$ 0.0560 & 0.7824 $\pm$ 0.0509 & 1.110e-03 $\pm$ 5.161e-04 \\
+UTV-C60 & 32.15 $\pm$ 2.99 & 0.8391 $\pm$ 0.0950 & 0.7632 $\pm$ 0.1123 & 7.564e-04 $\pm$ 4.776e-04 \\
+GS-PnP tuned-5 & 32.34 $\pm$ 2.76 & 0.7476 $\pm$ 0.0977 & 0.8193 $\pm$ 0.0750 & 7.059e-04 $\pm$ 4.210e-04 \\
+PnP-ADMM Tune-1 & 35.34 $\pm$ 3.82 & 0.8904 $\pm$ 0.0891 & 0.8607 $\pm$ 0.0786 & 4.103e-04 $\pm$ 3.059e-04 \\
+GS-PnP Tune-1 & 32.43 $\pm$ 2.78 & 0.7358 $\pm$ 0.0989 & 0.8373 $\pm$ 0.0699 & 6.897e-04 $\pm$ 3.996e-04 \\
+\bottomrule
+\end{tabular}}
+\caption{Means $\pm$ sample standard deviations over 45
+\emph{distinct} images. This does not count the ten random
+calibration draws as additional test images.}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=.85\linewidth]{../analysis/figures/All_45_10_Method_Mean_SD.pdf}
+\caption{Overall PSNR, SSIM, HaarPSI and MSE means
+with sample standard-deviation whiskers.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=.85\linewidth]{../analysis/figures/All_45_10_Method_Boxplots.pdf}
+\caption{Distribution of 45 paired test-image scores;
+outliers are hidden in the plot, but used in all means.}
+\end{figure}
+
+\subsection*{Per-category PSNR}
+\begin{table}[H]
+\centering\tiny
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lrrrrrrrrrr@{}}
+\toprule
+Category & ZF & SPGL1-BP & BPDN & ADMM-5 & GS oracle &
+TV & C60 & GS-5 & ADMM Tune-1 & GS Tune-1\\
+\midrule
+CIGS & 25.75 & 26.53 & 31.27 & 39.75 & 38.10 & 31.22 & 33.43 & 35.34 & 39.53 & 35.35 \\
+Organic & 25.59 & 26.32 & 31.78 & 38.37 & 37.79 & 31.46 & 35.36 & 34.84 & 38.57 & 35.33 \\
+Perovskite & 26.98 & 26.35 & 31.48 & 35.29 & 35.06 & 31.23 & 32.46 & 31.09 & 34.51 & 32.03 \\
+Reference & 24.37 & 24.42 & 26.67 & 31.91 & 31.57 & 28.24 & 29.22 & 29.51 & 31.72 & 29.61 \\
+Silicone & 22.15 & 23.33 & 25.21 & 32.46 & 31.62 & 27.72 & 30.29 & 30.90 & 32.38 & 29.80 \\
+\bottomrule
+\end{tabular}}
+\caption{Mean PSNR in dB for nine fixed test images per
+category. Companion figures report SSIM, HaarPSI and MSE,
+as well as sample SD.}
+\end{table}
+
+\subsection*{Tune-1 versus the previous tuned-5 baseline}
+\begin{table}[H]
+\centering\scriptsize
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{3}{c}{ADMM PSNR (dB)} &
+\multicolumn{3}{c}{GS-PnP PSNR (dB)}\\
+Category & Tuned-5 & Tune-1 & Difference &
+Tuned-5 & Tune-1 & Difference\\
+\midrule
+CIGS & 39.75 & 39.53 & -0.22 & 35.34 & 35.35 & +0.00 \\
+Organic & 38.37 & 38.57 & +0.20 & 34.84 & 35.33 & +0.49 \\
+Perovskite & 35.29 & 34.51 & -0.78 & 31.09 & 32.03 & +0.95 \\
+Reference & 31.91 & 31.72 & -0.19 & 29.51 & 29.61 & +0.11 \\
+Silicone & 32.46 & 32.38 & -0.07 & 30.90 & 29.80 & -1.10 \\
+\bottomrule
+\end{tabular}
+\caption{Paired category mean PSNR differences,
+Tune-1 minus the existing SSDU tuned-5 configuration.
+Positive means Tune-1 obtained higher PSNR on average
+for that category's nine test images.}
+\end{table}
+
+\subsection*{Reconstruction runtime}
+For the 45 newly reconstructed test images,
+the observed mean $\pm$ SD was
+0.820 $\pm$ 0.448 seconds/image for ADMM Tune-1 and
+1.162 $\pm$ 0.452 seconds/image for GS-PnP Tune-1.
+These exclude the earlier calibration-search cost
+and do not constitute a controlled speed comparison
+because the algorithms ran on different GPUs.
+
+\section{Visual comparisons and reproducibility}
+The companion 45-page PDF shows \emph{every} image in test set 45,
+with ground truth and exactly the ten methods specified above.
+Each method panel displays PSNR, SSIM, HaarPSI and MSE.
+The display uses the AFM-hot colormap capped at 0.8,
+with the same image intensity range $[0,1]$ for every panel.
+
+Files retained: a frozen random-selection JSON;
+the original test45 image-ID and acquisition-hash manifests;
+45 individual new ADMM reconstructions and 45 new GS-PnP
+reconstructions with metrics and solver diagnostics;
+archived benchmark scores and replayed visual arrays;
+a 45-row ten-method metrics CSV;
+per-category and global JSON summaries;
+bar/boxplot PDFs and five nine-page category visual PDFs.
+All experiment files are versioned separately from prior
+tune-1 calibration studies and test set 450.
+
+\section{Conclusion}
+On 45 matched test images, the randomly chosen PnP-ADMM Tune-1 configuration averaged 35.342 dB, compared with 35.554 dB for PnP-ADMM-tuned-5 (paired difference -0.212 dB). GS-PnP Tune-1 averaged 32.426 dB, compared with 32.336 dB for GS-PnP-tuned-5 (paired difference +0.089 dB).
+
+A single category-specific calibration can yield reasonable
+reconstruction quality, but our results represent
+\emph{one uniform random choice per category and method}.
+They do not establish that one calibration image is enough
+in general, that the joint PnP parameter objective is
+globally unimodal, or that SSDU loss predicts the best
+image-space reconstruction. The test45 comparisons must not
+be used to repeatedly retune parameters.
+
+\paragraph{Primary references}
+Yaman et al. (2020), acquired-measurement splitting for SSDU:
+\url{https://doi.org/10.1002/mrm.28378}.
+Hurault, Leclaire and Papadakis (2022),
+GS-PnP algorithm and backtracking:
+\url{https://openreview.net/pdf?id=fPhKeld3Okz}.
+
+\IfFileExists{../analysis/galleries/Test45_All_10_Methods_45_Pages.pdf}{
+\clearpage
+\includepdf[pages={1,10,19,28,37},pagecommand={\thispagestyle{empty}},fitpaper=true]{../analysis/galleries/Test45_All_10_Methods_45_Pages.pdf}
+}{}
+
+\end{document}
