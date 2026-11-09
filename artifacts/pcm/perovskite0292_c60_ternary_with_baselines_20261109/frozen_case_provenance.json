@@ -1,0 +1,10 @@
+{
+  "case": "Perovskite_0292",
+  "replay": "fixed default NPL 20% deterministic seed, SHA256 exact match to frozen test450",
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "pattern_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "C_mse": 0.001314941745066179,
+  "zero_mse": 0.0034947854261194048,
+  "baseline_C60_path": "/store/LION/ttv22/pcm/results/pcm/tune1_ternary_20261109_v1/test45/baselines/raw/utv_c60/Perovskite_0292.npy",
+  "raw_gt_path": "/store/LION/ttv22/pcm/data/PCM Synthetic Data Set/Synthetic Data/Synthetic Data/Perovskite/image0292.png"
+}

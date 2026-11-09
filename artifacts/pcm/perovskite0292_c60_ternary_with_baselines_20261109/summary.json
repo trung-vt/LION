@@ -1,0 +1,190 @@
+{
+  "case": "Perovskite_0292",
+  "scope": "single-image ground-truth oracle hyperparameter tuning",
+  "search_algorithm": "standard linear-domain ternary search",
+  "rho_search_range": [
+    0.0001,
+    10.0
+  ],
+  "tolerance_definition": "final interval width in rho <= 1e-4; not a global-optimum or PSNR error guarantee",
+  "tolerance_rho": 0.0001,
+  "final_bracket": [
+    0.38340938216863885,
+    0.3834753850553407
+  ],
+  "final_bracket_width": 6.600288670183252e-05,
+  "final_bracket_psnr_range_dB": 0.0,
+  "iterations": 26,
+  "unique_evaluations": 67,
+  "best_observed": {
+    "rho": 0.3835769676231552,
+    "rho_hex": "0x1.88c8668dc2deap-2",
+    "role": "ternary",
+    "elapsed_seconds": 0.4963210509158671,
+    "psnr": 29.408306121826172,
+    "ssim": 0.8417446613311768,
+    "haarpsi": 0.6814147233963013,
+    "mse": 0.0011459595989435911
+  },
+  "best_observed_in_final_bracket": false,
+  "best_in_bracket": {
+    "rho": 0.38340938216863885,
+    "rho_hex": "0x1.889c781593528p-2",
+    "role": "ternary",
+    "elapsed_seconds": 0.5008223799522966,
+    "psnr": 29.408306121826172,
+    "ssim": 0.8417502641677856,
+    "haarpsi": 0.6814514398574829,
+    "mse": 0.0011459595989435911
+  },
+  "best_improvement_vs_baseline_dB": 0.5973320007324219,
+  "diagnostic_candidates": [
+    {
+      "rho": 0.0001,
+      "rho_hex": "0x1.a36e2eb1c432dp-14",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49200369277969,
+      "psnr": 24.677814483642578,
+      "ssim": 0.4838457703590393,
+      "haarpsi": 0.5320448279380798,
+      "mse": 0.0034057938028126955
+    },
+    {
+      "rho": 0.001,
+      "rho_hex": "0x1.0624dd2f1a9fcp-10",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49563594278879464,
+      "psnr": 25.20743179321289,
+      "ssim": 0.525338888168335,
+      "haarpsi": 0.5629868507385254,
+      "mse": 0.0030147871002554893
+    },
+    {
+      "rho": 0.01,
+      "rho_hex": "0x1.47ae147ae147bp-7",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4952504059765488,
+      "psnr": 25.653961181640625,
+      "ssim": 0.6101722717285156,
+      "haarpsi": 0.628247857093811,
+      "mse": 0.0027202190831303596
+    },
+    {
+      "rho": 0.05,
+      "rho_hex": "0x1.999999999999ap-5",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4953754087910056,
+      "psnr": 26.369895935058594,
+      "ssim": 0.6832619905471802,
+      "haarpsi": 0.6741847395896912,
+      "mse": 0.0023068017326295376
+    },
+    {
+      "rho": 0.1,
+      "rho_hex": "0x1.999999999999ap-4",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49509165110066533,
+      "psnr": 27.555557250976562,
+      "ssim": 0.7541936635971069,
+      "haarpsi": 0.6923965215682983,
+      "mse": 0.0017556746024638414
+    },
+    {
+      "rho": 0.3,
+      "rho_hex": "0x1.3333333333333p-2",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4961615421343595,
+      "psnr": 29.343774795532227,
+      "ssim": 0.843583345413208,
+      "haarpsi": 0.6995509266853333,
+      "mse": 0.0011631142115220428
+    },
+    {
+      "rho": 0.45,
+      "rho_hex": "0x1.ccccccccccccdp-2",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49701899802312255,
+      "psnr": 29.382183074951172,
+      "ssim": 0.8385344743728638,
+      "haarpsi": 0.6673673391342163,
+      "mse": 0.0011528728064149618
+    },
+    {
+      "rho": 0.7,
+      "rho_hex": "0x1.6666666666666p-1",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49475148785859346,
+      "psnr": 29.130651473999023,
+      "ssim": 0.8244746327400208,
+      "haarpsi": 0.6179336905479431,
+      "mse": 0.0012216160539537668
+    },
+    {
+      "rho": 1.0,
+      "rho_hex": "0x1.0000000000000p+0",
+      "role": "archived_baseline",
+      "elapsed_seconds": 0.5167713640257716,
+      "psnr": 28.81097412109375,
+      "ssim": 0.8093465566635132,
+      "haarpsi": 0.5799608826637268,
+      "mse": 0.0013149294536560774
+    },
+    {
+      "rho": 1.5,
+      "rho_hex": "0x1.8000000000000p+0",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49564310698769987,
+      "psnr": 28.342025756835938,
+      "ssim": 0.7858651876449585,
+      "haarpsi": 0.5381966233253479,
+      "mse": 0.0014648642390966415
+    },
+    {
+      "rho": 2.5,
+      "rho_hex": "0x1.4000000000000p+1",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49589572800323367,
+      "psnr": 27.589555740356445,
+      "ssim": 0.7421735525131226,
+      "haarpsi": 0.486373633146286,
+      "mse": 0.0017419842770323157
+    },
+    {
+      "rho": 5.0,
+      "rho_hex": "0x1.4000000000000p+2",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4954583430662751,
+      "psnr": 26.288312911987305,
+      "ssim": 0.6511257886886597,
+      "haarpsi": 0.418359637260437,
+      "mse": 0.0023505445569753647
+    },
+    {
+      "rho": 10.0,
+      "rho_hex": "0x1.4000000000000p+3",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4954821679275483,
+      "psnr": 24.4627685546875,
+      "ssim": 0.5334961414337158,
+      "haarpsi": 0.3574592173099518,
+      "mse": 0.003578681731596589
+    }
+  ],
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "pattern_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "checkpoint_sha256": "22f544bc1b78b4a077295627e17d21382fc6ec7d2782a33af1191fa0b64c36b9",
+  "config_sha256": "c2ddd53d7a5b2e17f950f2f2f3c685cd0ff754d6b98ee60d8c636606d803e50f",
+  "lambda_map_sha256": "585bac51b5c7d030cdc486359b868252aafe7b9a8180fd01ed5669d9f2bcdb60",
+  "pdhg_iterations": 512,
+  "fixed": [
+    "measurement",
+    "sampled pattern indices",
+    "C60 checkpoint",
+    "CG input",
+    "positive lambda map prior to scaling",
+    "PDHG step sizes",
+    "initial image",
+    "512 iterations"
+  ],
+  "assumption_warning": "Ternary search is globally valid only for a unimodal PSNR-vs-rho objective; diagnostic evaluations do not prove unimodality."
+}

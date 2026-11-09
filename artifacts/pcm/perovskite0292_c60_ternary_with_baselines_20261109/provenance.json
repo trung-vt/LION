@@ -1,0 +1,7 @@
+{
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "pattern_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "reconstructions": "/store/LION/ttv22/pcm/results/pcm/perovskite0292_utv_c60_rho_sweep_20261109_v1",
+  "baselines": "/store/LION/ttv22/pcm/results/pcm/tune1_ternary_20261109_v1/test45/baselines/raw",
+  "gs_tuned5": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Perovskite_0292.npy"
+}
