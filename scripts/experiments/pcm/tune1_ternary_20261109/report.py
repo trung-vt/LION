@@ -136,20 +136,23 @@ Method & PSNR (dB) & SSIM & HaarPSI & MSE\\
 we first average the five calibration choices per image,
 without choosing a winner using test metrics.}
 \end{table}
-\begin{table}[H]
-\centering\scriptsize
-\begin{tabular}{@{}llrrr@{}}
+\begingroup\scriptsize
+\begin{longtable}{@{}llrrr@{}}
+\caption{All 50 independently selected tune-1 calibrations, each
+evaluated on nine unique test images.}\\
 \toprule
 Category & Method & Calibration ID & SSDU loss & Mean test9 PSNR\\
 \midrule
+\endfirsthead
+\toprule
+Category & Method & Calibration ID & SSDU loss & Mean test9 PSNR\\
+\midrule
+\endhead
 """
         + "\n".join(calibration_rows)
         + r"""
 \bottomrule
-\end{tabular}
-\caption{All 50 independently selected tune-1 calibrations.
-Each calibration is evaluated on nine unique test images.}
-\end{table}
+\end{longtable}\endgroup
 \IfFileExists{../analysis/figures/test45_12_methods_mean_sd.pdf}{
 \begin{figure}[H]\centering
 \includegraphics[width=.92\linewidth]{../analysis/figures/test45_12_methods_mean_sd.pdf}
