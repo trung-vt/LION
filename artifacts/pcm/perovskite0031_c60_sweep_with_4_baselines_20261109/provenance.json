@@ -1,0 +1,7 @@
+{
+  "measurement_sha256": "07bbd884a63f247d2ab0587b14772f1eb32e2ddaaf87eae821146f061e1a70b3",
+  "pattern_sha256": "0bbfef792c21009c55e7a7972347ab13e8145f858b1920953bcb3184bda352dc",
+  "reconstructions": "/store/LION/ttv22/pcm/results/pcm/perovskite0031_utv_c60_rho_sweep_20261109_v2",
+  "baselines": "/store/LION/ttv22/pcm/results/pcm/ten_methods_matched_450_20261105_v1/visual_14_paired_exact_v1/raw/Perovskite_0031.npz",
+  "gs_tuned5": "/store/LION/ttv22/pcm/results/pcm/ssdu_pnp_tuning_20261108_v1/test450/v1/raw/gs_ssdu/Perovskite_0031.npy"
+}
