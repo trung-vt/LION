@@ -23,7 +23,7 @@ from LION.config.RuntimeDirs import RuntimeDirs
 from LION.operators.FiniteDifferenceOp import PadModeIn
 
 SAPMBackend = Literal["new", "old", "mrpro", "direct"]
-SAPMRegularisation = Literal["TV", "TGV"]
+SAPMRegularisation = Literal["TV", "TGV", "TGV3"]
 
 
 @dataclass(kw_only=True)

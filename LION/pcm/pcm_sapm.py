@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 from mrpro.operators import LinearOperator
 
+from LION.models.AdaptiveTGV3PCMNetwork import AdaptiveTGV3PCMNetwork
 from LION.models.AdaptiveTGVPCMNetwork import AdaptiveTGVPCMNetwork
 from LION.models.AdaptiveTVPCMNetwork import AdaptiveTVPCMNetwork
 from LION.models.model_loader import ModelLoader, ModelSetup
@@ -83,11 +84,17 @@ def make_pcm_forward_data(
 
 
 class SAPMPCMModelLoader(
-    ModelLoader[SAPMPCMConfig, AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork]
+    ModelLoader[
+        SAPMPCMConfig,
+        AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork | AdaptiveTGV3PCMNetwork,
+    ]
 ):
     def __call__(
         self, config: SAPMPCMConfig, setup: ModelSetup | None = None
-    ) -> tuple[AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork, StateDict | None]:
+    ) -> tuple[
+        AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork | AdaptiveTGV3PCMNetwork,
+        StateDict | None,
+    ]:
         assert setup is not None
         assert setup.keys is not None
 
@@ -112,6 +119,17 @@ class SAPMPCMModelLoader(
                 setup.forward_op,
                 setup.example_image,
             )
+        elif config.model.pdhg.regularisation == "TGV3":
+            if config.model.backend not in ("new", "mrpro"):
+                raise ValueError("TGV-3 needs the existing MRPro-backed PDHG backend.")
+            if config.model.cnn is not None and config.model.cnn.out_channels != 3:
+                raise ValueError("Learned TGV-3 requires three parameter-map channels.")
+            model = AdaptiveTGV3PCMNetwork(
+                config.model,
+                lambda_map_network,
+                setup.forward_op,
+                setup.example_image,
+            )
         else:
             raise ValueError(
                 f"Unsupported regularisation: {config.model.pdhg.regularisation}"
@@ -125,12 +143,14 @@ class SAPMPCMModelLoader(
 
 class SAPMPCMForwardRunner(
     ForwardRunner[
-        SAPMPCMConfig, AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork, PCMForwardData
+        SAPMPCMConfig,
+        AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork | AdaptiveTGV3PCMNetwork,
+        PCMForwardData,
     ]
 ):
     def __call__(
         self,
-        model: AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork,
+        model: AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork | AdaptiveTGV3PCMNetwork,
         data: PCMForwardData,
         config: SAPMPCMConfig,
         *,
@@ -180,7 +200,9 @@ def load_trained_pcm_checkpoint_model(
     cases: list[tuple[float, int]],
     checkpoint_path: Path,
     device: torch.device,
-) -> tuple[AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork, int, int]:
+) -> tuple[
+    AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork | AdaptiveTGV3PCMNetwork, int, int
+]:
     """Construct a trained PCM model and load one training checkpoint."""
     pretrained = replace(
         config.pretrained,
@@ -218,7 +240,9 @@ def load_supervised_pcm_checkpoint_model(
     cases: list[tuple[float, int]],
     checkpoint_path: Path,
     device: torch.device,
-) -> tuple[AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork, int, int]:
+) -> tuple[
+    AdaptiveTVPCMNetwork | AdaptiveTGVPCMNetwork | AdaptiveTGV3PCMNetwork, int, int
+]:
     """Construct a supervised PCM model and load one training checkpoint."""
     return load_trained_pcm_checkpoint_model(
         config=config,
