@@ -1,0 +1,190 @@
+{
+  "case": "Perovskite_0031",
+  "scope": "single-image ground-truth oracle hyperparameter tuning",
+  "search_algorithm": "standard linear-domain ternary search",
+  "rho_search_range": [
+    0.0001,
+    10.0
+  ],
+  "tolerance_definition": "final interval width in rho <= 1e-4; not a global-optimum or PSNR error guarantee",
+  "tolerance_rho": 0.0001,
+  "final_bracket": [
+    0.4325622022727993,
+    0.43266120660285196
+  ],
+  "final_bracket_width": 9.900433005266551e-05,
+  "final_bracket_psnr_range_dB": 0.0,
+  "iterations": 25,
+  "unique_evaluations": 66,
+  "best_observed": {
+    "rho": 0.4324098284210775,
+    "rho_hex": "0x1.bac9a45e26663p-2",
+    "role": "ternary",
+    "elapsed_seconds": 0.49496352509595454,
+    "psnr": 31.15501594543457,
+    "ssim": 0.7925465703010559,
+    "haarpsi": 0.6995661854743958,
+    "mse": 0.0007664753356948495
+  },
+  "best_observed_in_final_bracket": false,
+  "best_in_bracket": {
+    "rho": 0.4325622022727993,
+    "rho_hex": "0x1.baf19600fd590p-2",
+    "role": "ternary",
+    "elapsed_seconds": 0.49535778909921646,
+    "psnr": 31.15501594543457,
+    "ssim": 0.7925513982772827,
+    "haarpsi": 0.6995289921760559,
+    "mse": 0.0007664753356948495
+  },
+  "best_improvement_vs_baseline_dB": 0.6975250244140625,
+  "diagnostic_candidates": [
+    {
+      "rho": 0.0001,
+      "rho_hex": "0x1.a36e2eb1c432dp-14",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.48870943300426006,
+      "psnr": 27.261056900024414,
+      "ssim": 0.6096785068511963,
+      "haarpsi": 0.6207643747329712,
+      "mse": 0.0018788594752550125
+    },
+    {
+      "rho": 0.001,
+      "rho_hex": "0x1.0624dd2f1a9fcp-10",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4911536641884595,
+      "psnr": 27.42345428466797,
+      "ssim": 0.619240939617157,
+      "haarpsi": 0.6522969603538513,
+      "mse": 0.001809899229556322
+    },
+    {
+      "rho": 0.01,
+      "rho_hex": "0x1.47ae147ae147bp-7",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4932671969290823,
+      "psnr": 27.089893341064453,
+      "ssim": 0.6217657923698425,
+      "haarpsi": 0.7058326005935669,
+      "mse": 0.001954387640580535
+    },
+    {
+      "rho": 0.05,
+      "rho_hex": "0x1.999999999999ap-5",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4925972409546375,
+      "psnr": 27.40511703491211,
+      "ssim": 0.6533217430114746,
+      "haarpsi": 0.7243967056274414,
+      "mse": 0.0018175572622567415
+    },
+    {
+      "rho": 0.1,
+      "rho_hex": "0x1.999999999999ap-4",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49139749608002603,
+      "psnr": 28.46166229248047,
+      "ssim": 0.6940133571624756,
+      "haarpsi": 0.736525297164917,
+      "mse": 0.0014250618405640125
+    },
+    {
+      "rho": 0.3,
+      "rho_hex": "0x1.3333333333333p-2",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49286233400925994,
+      "psnr": 30.92353630065918,
+      "ssim": 0.7799793481826782,
+      "haarpsi": 0.7288411259651184,
+      "mse": 0.0008084370056167245
+    },
+    {
+      "rho": 0.45,
+      "rho_hex": "0x1.ccccccccccccdp-2",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49654509988613427,
+      "psnr": 31.15239715576172,
+      "ssim": 0.7931252717971802,
+      "haarpsi": 0.6951208114624023,
+      "mse": 0.000766937795560807
+    },
+    {
+      "rho": 0.7,
+      "rho_hex": "0x1.6666666666666p-1",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.492816227953881,
+      "psnr": 30.896228790283203,
+      "ssim": 0.7901110053062439,
+      "haarpsi": 0.6571937203407288,
+      "mse": 0.0008135363459587097
+    },
+    {
+      "rho": 1.0,
+      "rho_hex": "0x1.0000000000000p+0",
+      "role": "archived_baseline",
+      "elapsed_seconds": 0.5129896129947156,
+      "psnr": 30.457490921020508,
+      "ssim": 0.7798101305961609,
+      "haarpsi": 0.6146228909492493,
+      "mse": 0.000900016981177032
+    },
+    {
+      "rho": 1.5,
+      "rho_hex": "0x1.8000000000000p+0",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4918341899756342,
+      "psnr": 29.806095123291016,
+      "ssim": 0.7638128399848938,
+      "haarpsi": 0.5696121454238892,
+      "mse": 0.0010456598829478025
+    },
+    {
+      "rho": 2.5,
+      "rho_hex": "0x1.4000000000000p+1",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.4917541209142655,
+      "psnr": 28.630014419555664,
+      "ssim": 0.7376728057861328,
+      "haarpsi": 0.516060471534729,
+      "mse": 0.0013708770275115967
+    },
+    {
+      "rho": 5.0,
+      "rho_hex": "0x1.4000000000000p+2",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.491859036963433,
+      "psnr": 26.718721389770508,
+      "ssim": 0.6987476348876953,
+      "haarpsi": 0.4532786011695862,
+      "mse": 0.0021287649869918823
+    },
+    {
+      "rho": 10.0,
+      "rho_hex": "0x1.4000000000000p+3",
+      "role": "diagnostic",
+      "elapsed_seconds": 0.49334442103281617,
+      "psnr": 24.705223083496094,
+      "ssim": 0.6755508184432983,
+      "haarpsi": 0.4244316518306732,
+      "mse": 0.0033843680284917355
+    }
+  ],
+  "measurement_sha256": "07bbd884a63f247d2ab0587b14772f1eb32e2ddaaf87eae821146f061e1a70b3",
+  "pattern_sha256": "0bbfef792c21009c55e7a7972347ab13e8145f858b1920953bcb3184bda352dc",
+  "checkpoint_sha256": "22f544bc1b78b4a077295627e17d21382fc6ec7d2782a33af1191fa0b64c36b9",
+  "config_sha256": "c2ddd53d7a5b2e17f950f2f2f3c685cd0ff754d6b98ee60d8c636606d803e50f",
+  "lambda_map_sha256": "6b74ff31d7dbafa8fd89b7cdb82298538647316fad815ebea85a446a8fc1ab0b",
+  "pdhg_iterations": 512,
+  "fixed": [
+    "measurement",
+    "sampled pattern indices",
+    "C60 checkpoint",
+    "CG input",
+    "positive lambda map prior to scaling",
+    "PDHG step sizes",
+    "initial image",
+    "512 iterations"
+  ],
+  "assumption_warning": "Ternary search is globally valid only for a unimodal PSNR-vs-rho objective; diagnostic evaluations do not prove unimodality."
+}
