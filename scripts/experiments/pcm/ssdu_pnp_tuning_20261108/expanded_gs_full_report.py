@@ -174,6 +174,20 @@ def make_report():
     # Use the pre-test source as a stable base for every regeneration.
     source = (archive / "GS_PnP_Expanded_SSDU_Tuning_Report_pretest.tex").read_text()
     assert source.count(r"\section{Conclusion}") == 1
+    initial_category = json.loads(
+        (RESULTS / "candidates/gs_exp_001/summary.json").read_text()
+    )["category_means"]
+    expanded_category = json.loads(
+        (
+            RESULTS / "candidates" / selected["winner"]["candidate_id"] / "summary.json"
+        ).read_text()
+    )["category_means"]
+    categories = ("CIGS", "Organic", "Perovskite", "Reference", "Silicone")
+    category_validation_rows = "\n".join(
+        f"{cat} & {initial_category[cat]:.8f} & {expanded_category[cat]:.8f} "
+        f"& {expanded_category[cat]-initial_category[cat]:+.8f} " + r"\\"
+        for cat in categories
+    )
     diag_rows, diagnostics = numerical_report(selected)
     winner = selected["winner"]
     p = winner["parameters"]
@@ -188,6 +202,26 @@ def make_report():
     newpsnr = summary["ALL"]["gs_pnp_expanded5"]["psnr"]["mean"]
     boundaries = selected["boundary_flag"]
     invalid = selected["invalid_candidates"]
+    invalid_rows = []
+    for candidate_id in invalid:
+        root = RESULTS / "candidates" / candidate_id
+        info = json.loads((root / "invalid_candidate.json").read_text())
+        for name in info["failed_case_files"]:
+            err = json.loads(Path(name).read_text())
+            category_case = err["case"].replace("_", r"\_")
+            label = candidate_id.replace("_", r"\_")
+            errtext = err["error"].replace("_", r"\_")
+            invalid_rows.append(
+                r"\texttt{"
+                + label
+                + "} & "
+                + r"\texttt{"
+                + category_case
+                + "} & "
+                + errtext
+                + r" \\"
+            )
+    invalid_table = "\n".join(invalid_rows)
     d = diagnostics[winner["candidate_id"]]
     pairedtext = (
         f"The expanded configuration gives mean PSNR {newpsnr:.3f} dB, "
@@ -201,6 +235,36 @@ def make_report():
         "All test parameters were frozen before scoring these images."
     )
 
+    # A post-freezing, test-only diagnostic. No hyperparameter adjustment.
+    with (OUT / "all_450_10_methods.csv").open(newline="") as stream:
+        records = list(csv.DictReader(stream))
+    assert len(records) == 450
+    deltas = np.array(
+        [
+            float(x["gs_pnp_expanded5_psnr"]) - float(x["gs_pnp_ssdu5_psnr"])
+            for x in records
+        ],
+        dtype=np.float64,
+    )
+    better = int(np.count_nonzero(deltas > 0))
+    large_loss = int(np.count_nonzero(deltas < -1))
+    median = float(np.median(deltas))
+    parity_path = TEST / "same_gpu_probe.json"
+    assert parity_path.exists()
+    parity = json.loads(parity_path.read_text())
+    assert parity["no_test_driven_tuning"] is True
+    parity_delta = max(abs(float(x["difference_db"])) for x in parity["cases"])
+    distribution = (
+        f"The expanded configuration gave higher PSNR on {better} of 450 "
+        f"matched images, with a median paired change of {median:+.3f} dB. "
+        f"However, {large_loss} images lost over one dB, producing the "
+        "negative mean paired change despite most cases improving. "
+        f"An eight-case hardware parity audit on the RTX 4090, including "
+        "large gain and loss cases, reproduced the earlier RTX 4070 original "
+        f"configuration PSNR to within {parity_delta:.5f} dB. "
+        "Thus the hardware difference does not explain those selected "
+        "outliers; full 450-image hardware parity has not been tested."
+    )
     latex = r"""
 \subsection*{Expanded sweep: measured validation outcome}
 The 27 candidates were predeclared before the GPU evaluation.
@@ -211,6 +275,19 @@ This is a <<IMPROVEMENT>> percent reduction in the SSDU loss
 relative to the original control. It is a difference in
 \emph{measurement prediction error}, not necessarily image
 reconstruction quality.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Category & Original SSDU MSE & Expanded SSDU MSE & Change\\
+\midrule
+<<CATEGORY_VALIDATION>>
+\bottomrule
+\end{tabular}
+\caption{Per-category validation measurement prediction errors: one
+image and four held-out folds per category.}
+\end{table}
 
 The frozen winning parameters are
 \[
@@ -224,6 +301,19 @@ previous test metrics influenced the selection.
 There were <<INVALID>> numerically invalid configurations
 out of 27. The winner's upper-bound flags are:
 lambda: <<FLAGLAM>>, sigma: <<FLAGSIG>>, tau0: <<FLAGTAU>>.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Invalid candidate & Validation case & Failure reason\\
+\midrule
+<<INVALIDDETAILS>>
+\bottomrule
+\end{tabular}
+\caption{Numerically invalid higher-value candidates; they were
+excluded rather than silently assigned a favourable SSDU loss.}
+\end{table}
 
 \begin{table}[htbp]
 \centering\small
@@ -263,6 +353,8 @@ baseline. We did not select or modify hyperparameters after
 examining reconstruction metrics.
 
 <<PAIREDTEXT>>
+
+<<DISTRIBUTION>>
 
 \begin{table}[htbp]
 \centering\scriptsize
@@ -340,8 +432,11 @@ were not used to adjust hyperparameters.
         "<<TOPRANK>>": top_candidates(selected),
         "<<DIAGNOSTICS>>": diag_rows,
         "<<PAIREDTEXT>>": pairedtext,
+        "<<DISTRIBUTION>>": distribution,
         "<<SCORETABLE>>": latex_stats(summary),
         "<<CATTABLE>>": by_category(summary),
+        "<<CATEGORY_VALIDATION>>": category_validation_rows,
+        "<<INVALIDDETAILS>>": invalid_table,
     }
     for key, value in replacements.items():
         assert key in latex
@@ -385,9 +480,18 @@ undersampled Hadamard nullspace remain important limitations.
         newconclusion = newconclusion.replace(key, value)
     source = source[:start] + latex + "\n" + newconclusion + source[refs:]
     source = source.replace(
-        "Current state: Prepared; new GPU search not started",
-        "Current state: Completed sweep, frozen selection and retrospective test",
+        "Current status: Prepared, not run.",
+        "Current status: Completed validation sweep, frozen parameters and retrospective 450-image test.",
     )
+    source = source.replace(
+        "We prepare 27 new-grid configurations",
+        "We evaluated 27 preregistered candidate configurations",
+    )
+    source = source.replace(
+        "The expanded sweep has not begun. The intended GPU is",
+        "The expanded sweep completed on 9 November 2026. The computing GPU was",
+    )
+    source = source.replace("8 November 2026", "9 November 2026")
     source = source.replace("version 1.0", "version 2.0")
     (REPORT / "GS_PnP_Expanded_SSDU_Tuning_Full_Report.tex").write_text(source)
     (REPORT / "full_report_data.json").write_text(

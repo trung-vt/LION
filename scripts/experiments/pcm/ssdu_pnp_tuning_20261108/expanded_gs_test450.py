@@ -65,8 +65,8 @@ def frozen_selection():
 def validate():
     record, candidate = frozen_selection()
     archive, config, ids, _ = validate_archive()
-    assert len(archive) == 450 and len(ids) == 10
-    assert len(set(ids)) == 10
+    assert len(archive) == 450 and len(ids) == 90
+    assert len(set(ids)) == 90
     proto = {
         "protocol": "GS-PnP-SSDU-expanded-5 on 450 fixed 20%-sampling NPL-noisy PCM test images",
         "selection_status": "frozen_before_test",

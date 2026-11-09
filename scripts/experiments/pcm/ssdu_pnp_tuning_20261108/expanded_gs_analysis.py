@@ -54,7 +54,9 @@ assert len(METHODS) == 10
 
 
 def inputs():
-    selected, cfg = validate()
+    validate()
+    selected = json.loads(SELECTION.read_text())
+    cfg = selected["winner"]["parameters"]
     expected_sha = sha_file(SELECTION)
     cases = sorted((TEST / "records").glob("*/*.json"))
     assert len(cases) == 450, (len(cases), "Missing reconstructed case records")
