@@ -1,0 +1,68 @@
+{
+  "name": "bad images for UTV, 23-case C60 ternary multiplier PSNR search",
+  "status": "complete",
+  "case_count": 23,
+  "rho_bounds": [
+    0.0001,
+    10
+  ],
+  "rho_width_tolerance": 0.01,
+  "criterion": "ground truth PSNR",
+  "method": "linear-rho ternary per case, extra diagnostic and bracket points",
+  "oracle_warning": "GT-selected multipliers; not an unbiased generalisation estimate",
+  "unimodality_warning": "No proof of PSNR unimodality, width limit not global optimum certificate",
+  "all_cases_have_frozen_measurement_hashes": true,
+  "all_metrics_validated_from_raw": true,
+  "all_cases_in_final_bracket": true,
+  "cases_opt_better_than_rho1": 23,
+  "cases_opt_better_than_admm": 0,
+  "by_category": {
+    "ALL": {
+      "count": 23,
+      "mean_rho": 0.7340523070689713,
+      "mean_psnr_admm": 33.78142497850501,
+      "mean_psnr_c60_rho1": 30.276249346525773,
+      "mean_psnr_c60_opt": 30.58894041310186,
+      "mean_psnr_gain_vs_c60_rho1": 0.312691066576087,
+      "mean_psnr_gap_vs_admm": -3.1924845654031504
+    },
+    "Reference": {
+      "count": 8,
+      "mean_rho": 0.7710406747148056,
+      "mean_psnr_admm": 31.91728115081787,
+      "mean_psnr_c60_rho1": 29.271711587905884,
+      "mean_psnr_c60_opt": 29.404229402542114,
+      "mean_psnr_gain_vs_c60_rho1": 0.13251781463623047,
+      "mean_psnr_gap_vs_admm": -2.513051748275757
+    },
+    "CIGS": {
+      "count": 6,
+      "mean_rho": 0.9895313566756142,
+      "mean_psnr_admm": 37.69435056050619,
+      "mean_psnr_c60_rho1": 32.15838146209717,
+      "mean_psnr_c60_opt": 32.173776626586914,
+      "mean_psnr_gain_vs_c60_rho1": 0.015395164489746094,
+      "mean_psnr_gap_vs_admm": -5.5205739339192705
+    },
+    "Perovskite": {
+      "count": 8,
+      "mean_rho": 0.42058382976255015,
+      "mean_psnr_admm": 32.73512601852417,
+      "mean_psnr_c60_rho1": 29.713040828704834,
+      "mean_psnr_c60_opt": 30.44653034210205,
+      "mean_psnr_gain_vs_c60_rho1": 0.7334895133972168,
+      "mean_psnr_gap_vs_admm": -2.288595676422119
+    },
+    "Silicone": {
+      "count": 1,
+      "mean_rho": 1.4130188867138103,
+      "mean_psnr_admm": 33.5874137878418,
+      "mean_psnr_c60_rho1": 31.525426864624023,
+      "mean_psnr_c60_opt": 31.69689178466797,
+      "mean_psnr_gain_vs_c60_rho1": 0.1714649200439453,
+      "mean_psnr_gap_vs_admm": -1.8905220031738281
+    }
+  },
+  "pdf": "/store/LION/ttv22/pcm/results/pcm/bad_utv23_c60_ternary_1e-2_20261109_v1/PCM_Bad_UTV_23_Ternary_1e-2_4_Panel_Comparisons.pdf",
+  "csv": "/store/LION/ttv22/pcm/results/pcm/bad_utv23_c60_ternary_1e-2_20261109_v1/all_23_summary.csv"
+}
