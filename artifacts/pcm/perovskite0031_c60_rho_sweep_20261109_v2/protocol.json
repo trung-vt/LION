@@ -1,0 +1,52 @@
+{
+  "case": "Perovskite_0031",
+  "dataset": "frozen 450-image held-out test subset",
+  "observation": "stored 20% multi-level Hadamard acquisition with NPL-default noise",
+  "baseline_file": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_fixed20_npl_default_20261103/cases/Perovskite_0031.npz",
+  "baseline_file_sha256": "3ea5085521ba99c192f1ce4eb59ccfde5cf65016d345b96eb79b96032fd200b9",
+  "measurement_sha256": "07bbd884a63f247d2ab0587b14772f1eb32e2ddaaf87eae821146f061e1a70b3",
+  "sampled_indices_sha256": "0bbfef792c21009c55e7a7972347ab13e8145f858b1920953bcb3184bda352dc",
+  "checkpoint_file": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_4090_3x56_winner_snapshot_20261103/checkpoints/best_val_epoch60.pt",
+  "checkpoint_sha256": "22f544bc1b78b4a077295627e17d21382fc6ec7d2782a33af1191fa0b64c36b9",
+  "config_file": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_4090_3x56_winner_snapshot_20261103/requested_config.yaml",
+  "config_sha256": "c2ddd53d7a5b2e17f950f2f2f3c685cd0ff754d6b98ee60d8c636606d803e50f",
+  "snapshot_source": "/store/LION/ttv22/pcm/results/pcm/pcm_utv_three_training_selection_20261103/source_9188b07",
+  "lambda_map_min": 0.008978260681033134,
+  "lambda_map_max": 0.2610781192779541,
+  "lambda_map_mean": 0.09600275754928589,
+  "lambda_map_sha256": "6b74ff31d7dbafa8fd89b7cdb82298538647316fad815ebea85a446a8fc1ab0b",
+  "lambda_map_scaling": "post-softplus lambda estimated once from fixed CG input; scaled by rho",
+  "rho_grid": [
+    0.01,
+    0.05,
+    0.1,
+    0.3,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.7,
+    0.9,
+    0.95,
+    1.0
+  ],
+  "iterations": 512,
+  "fixed": [
+    "measurement",
+    "pattern mask",
+    "checkpoint",
+    "CG input",
+    "unscaled lambda",
+    "initial image",
+    "step sizes",
+    "PDHG iterations"
+  ],
+  "baseline_max_abs_diff": 0.0,
+  "baseline_metrics": {
+    "psnr": 30.457490921020508,
+    "ssim": 0.7798101305961609,
+    "haarpsi": 0.6146228909492493,
+    "mse": 0.000900016981177032
+  },
+  "per_image_oracle_analysis": true
+}
