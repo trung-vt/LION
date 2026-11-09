@@ -1,0 +1,199 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=21mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,longtable,xcolor,hyperref,fancyhdr,graphicx,enumitem,float}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black,linkcolor=blue!55!black}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.48em}
+\setlength{\emergencystretch}{3em}
+\setlist[enumerate]{leftmargin=1.5em,itemsep=.2em}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small PCM / Tune-1 ternary search}
+\fancyhead[R]{\small 9 November 2026}
+\fancyfoot[C]{\thepage}\setlength{\headheight}{14pt}
+\begin{document}
+{\LARGE\bfseries PCM Tune-1: bounded ternary hyperparameter search}\\[5pt]
+{\large 20\% sampling, NPL-default noise, 256-by-256 images}\\[4pt]
+{\small Preparation report, version 1.0}\\[4pt]
+\input{status.tex}
+\par\medskip\hrule
+
+\section{Executive summary}
+We prepare an experiment with two independent PnP algorithms:
+PnP-ADMM-DRUNet and GS-PnP-GS-DRUNet.
+\emph{Test set 450} remains the full original test set
+(90 images in each of five categories).
+\emph{Test set 45} contains nine randomly drawn held-out test
+images per category, sampled with a fixed random seed.
+The 45 image IDs and their original measurement hashes are frozen.
+
+We select \textbf{five validation calibration images per category}.
+Each image produces one independent tune-1 search.
+There are therefore five category experiments containing
+\textbf{25 independent searches for each PnP algorithm}, or
+50 searches altogether. Each resulting configuration is applied
+unchanged to the same nine held-out test images of its category.
+Parameters are selected only from noisy acquired measurement
+cross-validation; test PSNR, SSIM and image ground truth are
+never used for tuning.
+
+\section{Tuning algorithm}
+For an acquisition with Hadamard model $y=Ax+\varepsilon$,
+let $\Lambda_k$ be one of four pre-frozen held-out sets of acquired
+fine-scale Hadamard rows, and let $\Theta_k$ be its complement
+within the acquired rows. The first 4,096 coarse patterns always
+stay in the fit set. The original 9,011 other acquired patterns
+are divided among four held-out folds.
+For candidate $\theta$, calculate
+\[
+L(\theta)=\frac14\sum_{k=1}^4
+\frac{\|A_{\Lambda_k}\widehat x_\theta(A_{\Theta_k},y_{\Theta_k})
+-y_{\Lambda_k}\|_2^2}{|\Lambda_k|}.
+\]
+Each image has its own loss and independently selected
+configuration. Every candidate is evaluated using the \emph{same}
+four measurements splits for that calibration image.
+
+\subsection*{Log-coordinate ternary search}
+The previous 15- and 18-candidate grids were Cartesian products of
+specific parameter values. The new strategy instead specifies
+continuous positive ranges and shrinks them numerically.
+For a single parameter, let $u=\log_{10}p$ and start with
+$[a,b]=[\log_{10}p_{\min},\log_{10}p_{\max}]$.
+At each step, evaluate two interior points,
+\[
+u_1=a+(b-a)/3,\qquad u_2=b-(b-a)/3.
+\]
+Under the assumption that the one-dimensional loss slice
+is \emph{unimodal}, retain $[a,u_2]$ if
+$L(u_1)\le L(u_2)$, otherwise retain $[u_1,b]$.
+
+With several parameters, hold the other coordinates fixed,
+perform three ternary contractions for one coordinate,
+then move to the next. Use two passes, reversing the
+coordinate order in the second pass. Keep the best
+\emph{measured, numerically valid} configuration.
+One-dimensional unimodality does \textbf{not} imply a globally
+unimodal two- or three-dimensional objective.
+Discontinuous solver stopping and backtracking can violate
+this assumption in practice.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Algorithm & Parameter & Frozen bounds\\
+\midrule
+PnP-ADMM & $\rho$ & 0.03 to 4.0\\
+PnP-ADMM & Denoiser $\sigma$ & 0.015 to 0.18\\
+GS-PnP & $\lambda$ & 0.005 to 0.40\\
+GS-PnP & Denoiser $\sigma$ & 0.015 to 0.15\\
+GS-PnP & Initial $\tau_0$ & 3.0 to 75\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Use the original pre-trained denoisers, normalised PCM
+fidelity and solver stopping rules.
+Every candidate is scored on all four SSDU folds.
+Numerical failures invalidate a candidate; they must be
+recorded rather than assigned a fictitious finite score.
+
+\section{Step-by-step plan}
+\begin{enumerate}
+\item \textbf{Freeze sample selection.}
+Select five validation and nine test images per category,
+independently of reconstruction metrics. Save RNG seeds,
+image IDs and measurement/mask SHA256 fingerprints.
+\textbf{Completed.}
+\item \textbf{Verify search code.}
+Check interval shrinking on synthetic unimodal objectives,
+reproducibility, output hashes and test-access guards.
+\textbf{Completed in the CPU preparation tests.}
+\item \textbf{Perform 50 tune-1 searches.}
+Run 25 ADMM and 25 GS-PnP independent searches on the
+preselected noisy validation data. Save all probed
+parameters, four fold losses, solver diagnostics,
+and failed configurations.
+\item \textbf{Freeze all parameters before test evaluation.}
+Test-set access is blocked until every one of the 50
+independent selection records has been frozen.
+\item \textbf{Apply parameters to test45.}
+For each calibration, reconstruct each of the nine
+test images in the same category, using the full
+20\% acquired measurement set. This produces
+225 full reconstructions per PnP family.
+\item \textbf{Compare against established methods.}
+Reuse archived 450-image baseline metrics after checking
+case and acquisition hashes. Regenerate any missing
+historical image arrays under the original fixed settings,
+then verify their image metrics.
+\item \textbf{Aggregate correctly.}
+For each tune-1 calibration, calculate the mean and
+sample SD over nine test images. To report one
+test45 number for tune-1, average five calibration
+results for each \emph{unique} test image first,
+then average across the 45 unique test images.
+The repeated calibrations are not 225 independent
+test-image samples.
+\item \textbf{Prepare deliverables.}
+Save individual reconstructions and scores, paired
+comparisons for PSNR, SSIM, HaarPSI and MSE, per-category
+tables and plots, and 45 visual comparison pages
+showing all historical and new tune-1 results.
+\end{enumerate}
+
+\section{Experiment running}
+\textbf{Frozen image IDs (per category):}
+\input{selection_table.tex}
+
+Both PnP solvers use the same 20\% Hadamard sampling
+rate and fixed NPL-default noise already archived
+for validation and test. No noise or masks will be
+regenerated for parameter selection.
+The planned GPUs are tuni RTX 4070 (ADMM) and
+RTX 4090 (GS-PnP). The prepared runner isolates
+each GPU and saves scores after each calibration
+candidate, allowing safe resumption.
+
+Two parameter passes with three ternary contractions
+per coordinate require at most 25 distinct candidate
+evaluations per ADMM calibration and 37 per GS calibration.
+At four folds per candidate, upper budgets are
+$25\times25\times4=2{,}500$ ADMM solver calls and
+$25\times37\times4=3{,}700$ GS solver calls.
+A solver call can take up to 100 iterations and
+GS-PnP may require additional network calls during
+backtracking. These are \emph{planned budgets}, not
+completed computations.
+
+\section{Results and deliverables}
+\input{results_section.tex}
+
+The preparation archive includes the frozen test45
+and validation sample lists, parameter bounds,
+tested pure ternary-search code, validation-only
+GPU tuning runner, test45 reconstruction runner,
+historical baseline replay scripts, metric
+aggregator and qualitative gallery generator.
+Full numerical results will only be inserted
+after all searches and reconstructions finish.
+
+\section{Conclusion}
+\input{conclusion_dynamic.tex}
+
+\paragraph{Primary sources.}
+Yaman et al. (2020), \emph{Self-Supervised Learning of Physics-Guided
+Reconstruction Neural Networks without Fully-Sampled Reference Data},
+section on measured-data holdout:
+\url{https://doi.org/10.1002/mrm.28378}.
+
+Berkeley Statistics 243, \emph{Univariate Function Optimisation},
+section on unimodal search and interval bracketing:
+\url{https://stat243.berkeley.edu/fall-2024/units/unit11-optim.html}.
+
+Hurault, Leclaire and Papadakis (2022),
+\emph{Gradient Step Denoiser for Convergent Plug-and-Play},
+GS-PnP update and backtracking:
+\url{https://openreview.net/pdf?id=fPhKeld3Okz}.
+\end{document}

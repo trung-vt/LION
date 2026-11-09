@@ -1,0 +1,98 @@
+{
+  "algorithmic_budget_per_calibration": {
+    "admm_max_candidate_evaluations": 26,
+    "admm_max_fold_calls": 104,
+    "detail": "one midpoint, 2*3*2=12 coordinate probes per ADMM pass pair? ADMM 2*3*2*2=24 plus final -> 26; GS 3*3*2*2=36 plus midpoint and final -> 38",
+    "gs_max_candidate_evaluations": 38,
+    "gs_max_fold_calls": 152
+  },
+  "all_holdout_folds_per_candidate": 4,
+  "coordinate_order": {
+    "admm": [
+      [
+        "rho",
+        "sigma"
+      ],
+      [
+        "sigma",
+        "rho"
+      ]
+    ],
+    "gs": [
+      [
+        "lambda",
+        "sigma",
+        "tau0"
+      ],
+      [
+        "tau0",
+        "sigma",
+        "lambda"
+      ]
+    ]
+  },
+  "coordinate_passes": 2,
+  "failure_policy": {
+    "all_invalid": "do not freeze selection; require validation-only numerical investigation",
+    "both_invalid": "stop shrinking that coordinate and retain best previously valid candidate",
+    "invalid_fold": "candidate invalid, record error; never assign a finite score",
+    "one_invalid_in_ternary_pair": "keep the bracket containing valid probe",
+    "selection": "best finite measurement-only SSDU loss among evaluated candidates",
+    "tie_tolerance": 1e-10
+  },
+  "fixed_method_config": {
+    "admm": {
+      "consecutive_passes": 5,
+      "eps_abs": 0.0001,
+      "eps_rel": 0.001,
+      "max_iterations": 100,
+      "min_iterations": 20,
+      "output": "final_x"
+    },
+    "gs": {
+      "eta_backtracking": 0.9,
+      "gamma_backtracking": 0.1,
+      "max_accepted_iterations": 100,
+      "max_backtracking_attempts": 20,
+      "output": "paper_final_z",
+      "stopping_eps": 1e-06,
+      "stopping_policy": "deepinv_relative_objective"
+    }
+  },
+  "initialization": "geometric midpoint of each range",
+  "initialization_is_not_from_test_metrics": true,
+  "no_test_driven_refinement": true,
+  "ranges": {
+    "admm": {
+      "rho": [
+        0.03,
+        4.0
+      ],
+      "sigma": [
+        0.015,
+        0.18
+      ]
+    },
+    "gs": {
+      "lambda": [
+        0.005,
+        0.4
+      ],
+      "sigma": [
+        0.015,
+        0.15
+      ],
+      "tau0": [
+        3.0,
+        75.0
+      ]
+    }
+  },
+  "reuse_old_pretrained_denoiser_weights": true,
+  "schema": "PCM-SSDU-TUNE1-TERNARY-20261109-v1",
+  "search_method": "bounded_log_coordinate_ternary_search",
+  "selection_metric": "equal average of four held-out normalised Hadamard measurement MSE",
+  "status": "prepared_not_executed",
+  "ternary_contractions_per_coordinate": 3,
+  "test_image_ground_truth_used_to_choose_parameters": false
+}

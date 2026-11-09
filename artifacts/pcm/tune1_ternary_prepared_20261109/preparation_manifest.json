@@ -1,0 +1,118 @@
+{
+  "admm_max_solver_fold_calls": 2500,
+  "files": {
+    "code/PLAN.md": {
+      "bytes": 2729,
+      "sha256": "2a81e938ce18109b5f15d94fdef8e36041a3d4cc0a9b72d563191c151df56983"
+    },
+    "code/README.md": {
+      "bytes": 3277,
+      "sha256": "9f2774505ea6c4a05d0eac43fbfb20beb97f64a38d3d0db71e9c55e8ad7ff55f"
+    },
+    "code/analyse.py": {
+      "bytes": 10830,
+      "sha256": "6b946ddc268e0ed770602e181954da501837d3e772b8ed4ba057391b4645edad"
+    },
+    "code/gallery.py": {
+      "bytes": 6211,
+      "sha256": "6ab849c8707dcc6dfb1958b260849a192b279f65a02bc70c1c2291a99ecb2733"
+    },
+    "code/prepare.py": {
+      "bytes": 11775,
+      "sha256": "7003a67b07ee7d218aab32a788d8ae353abf10a8855d640b8912be03ca7c70a6"
+    },
+    "code/replay_baselines.py": {
+      "bytes": 9218,
+      "sha256": "2db0d15f6f306ed0f81d88f17837b8fe7113ea44b94a17a3c7a7f329501255d2"
+    },
+    "code/replay_c60.py": {
+      "bytes": 6022,
+      "sha256": "b63ca0163132b2d5f191848b2a4014c329422661b318365c6bb973e37e51a248"
+    },
+    "code/report.py": {
+      "bytes": 8060,
+      "sha256": "fae9bc6952dbc1623d1cef3ad1eb56da17a09a3957560161c97c8d8f4990af1b"
+    },
+    "code/run_all.sh": {
+      "bytes": 5069,
+      "sha256": "e60edeabdc07dfe4e4c4cd8a0923644449122b07f401cd33984f537691bdaf6f"
+    },
+    "code/run_tune1.py": {
+      "bytes": 9979,
+      "sha256": "1ed31841d4713207ab5e9be7d1776547d2e0b9a48d44ff113344e48b942782e7"
+    },
+    "code/status.py": {
+      "bytes": 1974,
+      "sha256": "cafa8e17e579622da4123aa3d1e5a1362b2b6c3509414c93d692d8f617eb5a7a"
+    },
+    "code/ternary.py": {
+      "bytes": 6114,
+      "sha256": "54b48a819e8c98d8748018ecf9e801d86fe67f50fd29f58e37f4a05cf8d1d659"
+    },
+    "code/test45_run.py": {
+      "bytes": 8253,
+      "sha256": "14c338fa1972434f1651a95b1c4d173ee2bb7e096056b0f3fa0c97861443ca04"
+    },
+    "code/test_prepare.py": {
+      "bytes": 3531,
+      "sha256": "7d16a3a82261c35d137cc5ee7e0ab3df0e7db3a61316aaa9ed66daaee8554397"
+    },
+    "prepared/protocol.json": {
+      "bytes": 1482,
+      "sha256": "fe00d84880c2fe93f4b3f4f7300ebb5cc7a586b805f387fe22ddbff7fc29bca2"
+    },
+    "prepared/ranges.json": {
+      "bytes": 2553,
+      "sha256": "0c666783504c76dc1b80f359e568d1af88d8601c2d24d8cd77ca48aa911cbb09"
+    },
+    "prepared/test45.csv": {
+      "bytes": 6508,
+      "sha256": "e1adedfb0f94ea7c08c1564a20e58e202aeb0842b3dca094dc49d41a9d0b5833"
+    },
+    "prepared/test45.json": {
+      "bytes": 11814,
+      "sha256": "bdd3730b18c9d07f65c129b13c313656c6dbf2bfb14c0ae58bb9a0fa6cea3e0b"
+    },
+    "prepared/validation_calibrations.csv": {
+      "bytes": 9394,
+      "sha256": "f9e87629fca29081bf4db4913707a2521b4fd484ee668931712974beb0564fa6"
+    },
+    "prepared/validation_calibrations.json": {
+      "bytes": 23113,
+      "sha256": "34c128fef168e236bfffcd898cfe87bd01e4f1d29067a77a0261cacdbd492b6d"
+    },
+    "report/PCM_Tune1_Ternary_Search_Report.pdf": {
+      "bytes": 257250,
+      "sha256": "060f6d354eb30431cd6672e4267a120309966885e9f82726fb1caba5ea763d27"
+    },
+    "report/PCM_Tune1_Ternary_Search_Report.tex": {
+      "bytes": 8204,
+      "sha256": "4b2a1f67989a6b7f61fa3087c9cfccefc9e8c6320943e1e3a046c3ab7b7a32fd"
+    },
+    "report/conclusion_dynamic.tex": {
+      "bytes": 218,
+      "sha256": "0e8dc6c5f622c99053798fe19d5b4caa5a7f3d0401b57b62ce09e4ba0f0ad799"
+    },
+    "report/report_manifest.json": {
+      "bytes": 588,
+      "sha256": "4fe4227b5623aa0d0fdef705a558f03962bc36a359982a3dc3559f154ca5036e"
+    },
+    "report/results_section.tex": {
+      "bytes": 233,
+      "sha256": "4f0182368aa0a7c4b0ace7f0a0cc51a5a637a3a58251571912fd4c1415ee1e3f"
+    },
+    "report/selection_table.tex": {
+      "bytes": 714,
+      "sha256": "a472145e4101f97384ba5b27c10b1436811c9b472c846bfd30c2e0dbbe558773"
+    },
+    "report/status.tex": {
+      "bytes": 90,
+      "sha256": "9008aea83b7aa2e9ef9b477c4cee477e1ea8c898a189d23e5e731b53f9bb62ed"
+    }
+  },
+  "gs_max_solver_fold_calls": 3700,
+  "independent_calibrations_each_algorithm": 25,
+  "number_category_experiments": 5,
+  "status": "prepared, zero tune-1 parameter searches or test45 reconstructions executed",
+  "test45_images": 45
+}
