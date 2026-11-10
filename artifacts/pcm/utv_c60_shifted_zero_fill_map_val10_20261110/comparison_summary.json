@@ -1,0 +1,71 @@
+{
+  "case_count": 10,
+  "categories": [
+    "CIGS",
+    "Organic",
+    "Perovskite",
+    "Reference",
+    "Silicone"
+  ],
+  "mean_psnr": {
+    "pnp": 35.89561824798584,
+    "learned": 32.42729320526123,
+    "clipped": 24.789782333374024,
+    "shifted": 26.800192260742186
+  },
+  "sample_std_psnr": {
+    "pnp": 3.3856546608855353,
+    "learned": 3.104053964570604,
+    "clipped": 1.973329867484232,
+    "shifted": 2.7874734337866864
+  },
+  "mean_difference_shifted_minus_clipped": 2.010409927368164,
+  "mean_difference_shifted_minus_learned": -5.627100944519043,
+  "shifted_better_than_clipped_count": 10,
+  "shifted_better_than_learned_count": 0,
+  "shifted_best_at_lower_boundary_count": 0,
+  "shifted_best_outside_final_bracket_count": 1,
+  "per_category": {
+    "CIGS": {
+      "pnp": 38.815765380859375,
+      "learned": 32.63002395629883,
+      "clipped": 25.049476623535156,
+      "shifted": 26.25271987915039
+    },
+    "Organic": {
+      "pnp": 39.34187316894531,
+      "learned": 36.40495300292969,
+      "clipped": 25.843098640441895,
+      "shifted": 29.408428192138672
+    },
+    "Perovskite": {
+      "pnp": 35.53648567199707,
+      "learned": 32.422709465026855,
+      "clipped": 26.705957412719727,
+      "shifted": 29.310182571411133
+    },
+    "Reference": {
+      "pnp": 32.77651786804199,
+      "learned": 30.069599151611328,
+      "clipped": 23.44982147216797,
+      "shifted": 24.57908821105957
+    },
+    "Silicone": {
+      "pnp": 33.00744915008545,
+      "learned": 30.609180450439453,
+      "clipped": 22.90055751800537,
+      "shifted": 24.450542449951172
+    }
+  },
+  "same_data_and_C60_algorithm": true,
+  "shifted_map": "rho*(ZF-min(ZF)+1e-5)",
+  "clipped_map": "rho*maximum(ZF,0)",
+  "ground_truth_rho_oracle": true,
+  "note": "best observed values, ternary search assumes PSNR unimodality not proven",
+  "checkpoint": "C60 epoch 60, 512 PDHG, 20 CG input iterations",
+  "rho_range": [
+    0.0001,
+    10.0
+  ],
+  "interval_width_tolerance": 0.01
+}

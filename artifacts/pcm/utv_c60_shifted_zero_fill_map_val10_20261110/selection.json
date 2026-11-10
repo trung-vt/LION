@@ -1,0 +1,107 @@
+{
+  "rng_seed": 20261110,
+  "method": "numpy default_rng choice 2 of 10 per category",
+  "selected": [
+    {
+      "file": "validation/CIGS/sample_0768_r0.npz",
+      "sha256": "008136f12b8f0fd5576289b08cf1bdd161b4fc4e937c44ff5ac88f15912070c8",
+      "bytes": 116570,
+      "category": "CIGS",
+      "sample_id": 768,
+      "permutation_position_1based": 907,
+      "source_sha256": "83f198c02dd3d90e270a189c144a88858a9a85f7729e701ca867bb8b91605beb",
+      "swapped_pairs": 6454
+    },
+    {
+      "file": "validation/CIGS/sample_0158_r0.npz",
+      "sha256": "cb73aa74f6e7ac732c11c4574448b1c5bc7611065d7c1f3746b7a5fcc38ce31d",
+      "bytes": 116452,
+      "category": "CIGS",
+      "sample_id": 158,
+      "permutation_position_1based": 910,
+      "source_sha256": "de5801bdd5290d8af7ce229c9492f2643e966c47d49bfb982cda92f94d1b0892",
+      "swapped_pairs": 6488
+    },
+    {
+      "file": "validation/Organic/sample_0917_r0.npz",
+      "sha256": "1d32673171547adde65000728aa43799df1103be2b42c0dbbe08f4447c30a2a8",
+      "bytes": 114735,
+      "category": "Organic",
+      "sample_id": 917,
+      "permutation_position_1based": 902,
+      "source_sha256": "14ce15e66042f82b8cae13f8081c4d19dc73a8db36b420be5e82647b49393714",
+      "swapped_pairs": 6569
+    },
+    {
+      "file": "validation/Organic/sample_0008_r0.npz",
+      "sha256": "4eb88a6a03b4e9e40114da35a56889e9f43a390488b627f05a0692f0e5bd5b7d",
+      "bytes": 114778,
+      "category": "Organic",
+      "sample_id": 8,
+      "permutation_position_1based": 903,
+      "source_sha256": "1e31a3970ceac29ce4e4f281179d5c820c1dbb618629ce89904399b652014a98",
+      "swapped_pairs": 6540
+    },
+    {
+      "file": "validation/Perovskite/sample_0733_r0.npz",
+      "sha256": "78437484d62bb6ebff2c6cec3440b3d9c33f30eab06ea9259ddecd19d3ab0e89",
+      "bytes": 116176,
+      "category": "Perovskite",
+      "sample_id": 733,
+      "permutation_position_1based": 901,
+      "source_sha256": "d41e22659417d77393e47e11255b0f5a183a0b30265b94ac077e3a03807a2c46",
+      "swapped_pairs": 6539
+    },
+    {
+      "file": "validation/Perovskite/sample_0396_r0.npz",
+      "sha256": "eef3eb3d801bd4419699b2c1d9c9590564e077f5e735c3a94124538d36ab5a91",
+      "bytes": 118523,
+      "category": "Perovskite",
+      "sample_id": 396,
+      "permutation_position_1based": 906,
+      "source_sha256": "26eb0a5836e666939405064b58776c1d195b44c0190e1bd525284f5545d14417",
+      "swapped_pairs": 6583
+    },
+    {
+      "file": "validation/Reference/sample_0768_r0.npz",
+      "sha256": "ca83169ef8b7c4298c2f8d952be3de88ff787120df7161b526bafa4408076a14",
+      "bytes": 116517,
+      "category": "Reference",
+      "sample_id": 768,
+      "permutation_position_1based": 907,
+      "source_sha256": "de1bf91a401643b7f38c9b1a0d46d38c7824d76d9e6ee7b851475781d9710dc0",
+      "swapped_pairs": 6436
+    },
+    {
+      "file": "validation/Reference/sample_0589_r0.npz",
+      "sha256": "2bd597d30c68e3b10bfdec97a2198689ce99460d23513ec5fde8888e90faf6ea",
+      "bytes": 115097,
+      "category": "Reference",
+      "sample_id": 589,
+      "permutation_position_1based": 909,
+      "source_sha256": "ff2e80b0107babf7865e5347025519d58e45f96c2f2c7c4e2b73764b4a370276",
+      "swapped_pairs": 6561
+    },
+    {
+      "file": "validation/Silicone/sample_0008_r0.npz",
+      "sha256": "0c29d5c4f5cd753cfcb48cc663578e8656c1d309a4b8d8b82aca510ed9f2569e",
+      "bytes": 114767,
+      "category": "Silicone",
+      "sample_id": 8,
+      "permutation_position_1based": 903,
+      "source_sha256": "356240e0179d035d6a38b1affeb538a1160417b6b3f92c7b7ce6dd7d3ab45790",
+      "swapped_pairs": 6492
+    },
+    {
+      "file": "validation/Silicone/sample_0589_r0.npz",
+      "sha256": "70603c37a1f2c70951eb63cb00b491cb87f3366caff1e3c910098fa5e4ed0313",
+      "bytes": 114745,
+      "category": "Silicone",
+      "sample_id": 589,
+      "permutation_position_1based": 909,
+      "source_sha256": "44a462465c03724dbfdf98e20cc347cb09dd2362bfb0423216098a03970796f0",
+      "swapped_pairs": 6470
+    }
+  ],
+  "archive_root": "/store/LION/ttv22/pcm/results/pcm/pcm_oracle_wls_vs_ols_20261102/acquisitions_v5_reviewed_final"
+}

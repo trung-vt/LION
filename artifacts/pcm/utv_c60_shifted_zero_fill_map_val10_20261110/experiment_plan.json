@@ -1,0 +1,16 @@
+{
+  "condition": "zero-fill shifted to minimum 1e-5 before map scaling (no clipping)",
+  "formula": "Lambda_rho = rho * (zero_fill - min(zero_fill) + 1e-5)",
+  "shift_per_image": true,
+  "original_clipped_experiment": "/store/LION/ttv22/pcm/results/pcm/utv_c60_zero_fill_map_val10_20261110_v1",
+  "selection_and_acquisition": "reuse exact 10 frozen validation archives and stored PnP",
+  "rho_range": [
+    0.0001,
+    10.0
+  ],
+  "rho_interval_width": 0.01,
+  "iterations": 512,
+  "checkpoint": "C60 epoch 60",
+  "gt_oracle": true,
+  "no_LION_code_changes": true
+}
