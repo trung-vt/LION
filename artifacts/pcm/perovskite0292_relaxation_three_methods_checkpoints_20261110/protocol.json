@@ -1,0 +1,21 @@
+{
+  "case": "Perovskite_0292",
+  "GPU": "NVIDIA GeForce RTX 4090",
+  "iterations": [
+    256,
+    512,
+    1024
+  ],
+  "sampling": "Frozen 20% NPL default Hadamard acquisition",
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "indices_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "step_sizes": {
+    "tau": 0.18,
+    "sigma": 0.18
+  },
+  "same_weights_and_initialization": true,
+  "LION_source_changes": false,
+  "spatial_error_definition": "unclipped reconstruction - ground truth",
+  "measurement_residual_definition": "A reconstruction - y, normalized PCM operator",
+  "all_18_match_archived_metrics_and_objective": true
+}
