@@ -1,0 +1,38 @@
+{
+  "status": "complete",
+  "case": "Perovskite_0292",
+  "method": "scalar TGV-3, full-tensor anisotropic L1, existing LION MRPro PDHG",
+  "data": "frozen 20% multilevel Hadamard, NPL-default PCM noise",
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "sampled_indices_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "objective": "0.5||Au-y||^2 + alpha2||grad u-v||_1 + alpha1||E1 v-w||_1 + alpha0||E2 w||_1",
+  "tau": 0.18,
+  "sigma": 0.18,
+  "theta": 1.0,
+  "weights": [
+    0.032,
+    0.01,
+    0.024
+  ],
+  "final_metrics": {
+    "alpha2": 0.032,
+    "alpha1": 0.01,
+    "alpha0": 0.024,
+    "iterations": 8192,
+    "seconds": 16.63907409599051,
+    "psnr": 30.46432876586914,
+    "ssim": 0.7402219772338867,
+    "haarpsi": 0.7335723638534546,
+    "mse": 0.0008986011380329728
+  },
+  "counts": {
+    "coarse_512": 152,
+    "coarse_shortlist_2048": 13,
+    "local_1024": 81,
+    "shortlist_4096": 6,
+    "finalists_8192": 3
+  },
+  "selection": "ground-truth PSNR on one image, not unbiased or globally certified",
+  "caveat": "Existing shared PDHG uses interpolation relaxation, not textbook CP extrapolation.",
+  "branch": "feature/pcm-tgv3-mrpro-20261109"
+}

@@ -1,0 +1,59 @@
+{
+  "case": "Perovskite_0292",
+  "status": "complete",
+  "measurement_sha256": "f8ffea66daeedaef8df0b1f711d609266d654d86af5dd6da34f6b13b2c287dfa",
+  "sampled_indices_sha256": "6a81317079c12733583d014d158fe0ecb46d3739f6d67cc027edfad0960cc9f5",
+  "method": "TGV3 scalar parameters optimized by ground-truth PSNR",
+  "stopping": "chosen final reconstruction after 8192 PDHG iterations",
+  "tgv3_weights": [
+    0.032,
+    0.01,
+    0.024
+  ],
+  "tgv3_metrics": {
+    "alpha2": 0.032,
+    "alpha1": 0.01,
+    "alpha0": 0.024,
+    "iterations": 8192,
+    "seconds": 16.63907409599051,
+    "psnr": 30.46432876586914,
+    "ssim": 0.7402219772338867,
+    "haarpsi": 0.7335723638534546,
+    "mse": 0.0008986011380329728
+  },
+  "comparison": {
+    "PnP-ADMM-tuned-5": {
+      "psnr": 32.369354248046875,
+      "ssim": 0.9268714189529419,
+      "haarpsi": 0.8176472783088684,
+      "mse": 0.0005795144243165851
+    },
+    "UTV C60": {
+      "psnr": 29.408306121826172,
+      "ssim": 0.8417503833770752,
+      "haarpsi": 0.6814417839050293,
+      "mse": 0.0011459594825282693
+    },
+    "Scalar TV": {
+      "psnr": 30.369714736938477,
+      "ssim": 0.8140621185302734,
+      "haarpsi": 0.7257879376411438,
+      "mse": 0.0009183925576508045
+    },
+    "Scalar TGV-2": {
+      "psnr": 30.43625831604004,
+      "ssim": 0.7402150630950928,
+      "haarpsi": 0.7345375418663025,
+      "mse": 0.0009044279577210546
+    },
+    "Scalar TGV-3": {
+      "psnr": 30.46432876586914,
+      "ssim": 0.7402219772338867,
+      "haarpsi": 0.7335723638534546,
+      "mse": 0.0008986011380329728
+    }
+  },
+  "output_pdf": "/store/LION/ttv22/pcm/results/pcm/perovskite0292_scalar_tgv3_oracle_20261110_v1/Perovskite_0292_TGV3_vs_TGV2_TV_UTV_PnP.pdf",
+  "oracle_warning": "All scalar variational and C60 map scaling values were tuned per image using GT",
+  "solver_warning": "Existing LION PDHG relaxation differs from textbook Chambolle-Pock extrapolation"
+}

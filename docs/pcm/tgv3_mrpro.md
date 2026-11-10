@@ -84,3 +84,15 @@ Problems with Applications to Imaging (2011):
 https://doi.org/10.1007/s10851-010-0251-1
 
 MRPro operator documentation: https://docs.mrpro.rocks/
+
+## Perovskite 0292 scalar experiment, 10 November 2026
+
+A 255-evaluation oracle grid on the frozen 20% default-NPL acquisition
+selected (alpha2,alpha1,alpha0)=(0.032,0.010,0.024).
+
+At 8192 iterations: PSNR=30.46433 dB, SSIM=0.74022,
+HaarPSI=0.73357. The same weights at 4096 iterations: PSNR=30.46465 dB.
+
+The prior PSNR-tuned scalar TGV-2 baseline gave 30.43626 dB; the
+TGV-3 gain was just 0.02807 dB. Refer to the complete experiment
+under artifacts/pcm/perovskite0292_scalar_tgv3_20261110.
