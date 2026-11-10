@@ -1,0 +1,102 @@
+{
+  "scope": "10 frozen validation images, random seed 20261110, 2/category",
+  "zero_map": "rho*maximum(zero_fill,0), no max-1 clipping, no CNN",
+  "learned_map": "original post-softplus C60 map learned from 20 CG iteration input",
+  "reconstruction_iterations": 512,
+  "rho_range": [
+    0.0001,
+    10
+  ],
+  "ternary_interval_width": 0.01,
+  "mean_metrics": {
+    "pnp": [
+      35.89561824798584,
+      3.3856546608855353
+    ],
+    "learned": [
+      32.42729320526123,
+      3.104053964570604
+    ],
+    "replacement": [
+      24.789782333374024,
+      1.973329867484232
+    ]
+  },
+  "replacement_better_psnr_count": 0,
+  "rho_at_lower_bound_count": 9,
+  "selected_outside_bracket_count": 3,
+  "per_category": {
+    "CIGS": {
+      "pnp": [
+        38.815765380859375,
+        2.0105597743721653
+      ],
+      "learned": [
+        32.63002395629883,
+        0.5852545101701554
+      ],
+      "replacement": [
+        25.049476623535156,
+        1.0099328992616854
+      ]
+    },
+    "Organic": {
+      "pnp": [
+        39.34187316894531,
+        0.3051189066341305
+      ],
+      "learned": [
+        36.40495300292969,
+        0.13760507711582387
+      ],
+      "replacement": [
+        25.843098640441895,
+        0.09863711250701553
+      ]
+    },
+    "Perovskite": {
+      "pnp": [
+        35.53648567199707,
+        4.2708042228186285
+      ],
+      "learned": [
+        32.422709465026855,
+        5.469165229354091
+      ],
+      "replacement": [
+        26.705957412719727,
+        2.8279712644326964
+      ]
+    },
+    "Reference": {
+      "pnp": [
+        32.77651786804199,
+        0.9954074093908909
+      ],
+      "learned": [
+        30.069599151611328,
+        2.376826003175477
+      ],
+      "replacement": [
+        23.44982147216797,
+        2.312897663354153
+      ]
+    },
+    "Silicone": {
+      "pnp": [
+        33.00744915008545,
+        1.6097924725526238
+      ],
+      "learned": [
+        30.609180450439453,
+        1.1573780853930447
+      ],
+      "replacement": [
+        22.90055751800537,
+        0.4929994420520535
+      ]
+    }
+  },
+  "validation_leakage_warning": "Oracle rho selected using GT on validation images; C60 checkpoint and PnP hyperparameters were also selected on validation data.",
+  "ternary_warning": "PSNR unimodality not proven; best observed evaluated rho selected."
+}

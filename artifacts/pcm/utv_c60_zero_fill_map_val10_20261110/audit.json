@@ -1,0 +1,7 @@
+{
+  "C60_checkpoint_SHA256": "22f544bc1b78b4a077295627e17d21382fc6ec7d2782a33af1191fa0b64c36b9",
+  "C60_config_SHA256": "c2ddd53d7a5b2e17f950f2f2f3c685cd0ff754d6b98ee60d8c636606d803e50f",
+  "mean_delta_PSNR_zero_minus_learned": -7.637510871887205,
+  "random_seed": 20261110,
+  "LION_code_modified": false
+}
