@@ -254,9 +254,10 @@ def pdhg(
         max_iterations: Number of PDHG iterations.
         primal_stepsize: Step size used in the primal update.
         dual_stepsize: Step size used in the dual update.
-        relaxation: Interpolation weight between the previous and updated primal variables.
-            A value of ``0.0`` keeps the previous primal as the relaxed variable,
-            while ``1.0`` uses the updated primal directly.
+        relaxation: Chambolle-Pock primal extrapolation coefficient (theta).
+            A value of 0.0 uses the new primal directly, without extrapolation.
+            The default 1.0 uses 2 * primal_new - primal, matching the MRPro
+            correction in PR #999 (July 2026).
         use_checkpoint: Whether to use gradient checkpointing.
         checkpoint_chunk_size: Number of PDHG iterations in each checkpointed chunk.
             If ``None``, all iterations are placed in one chunk.
@@ -370,8 +371,8 @@ def pdhg(
         primals_new = g_sum.prox(*primals_new, sigma=primal_stepsize_)
 
         primals_relaxed = tuple(
-            torch.lerp(primal, primal_new, relaxation)
-            for primal, primal_new in zip(primals, primals_new, strict=False)
+            torch.lerp(primal_new, primal, -relaxation)
+            for primal_new, primal in zip(primals_new, primals, strict=False)
         )
 
         primals = primals_new
